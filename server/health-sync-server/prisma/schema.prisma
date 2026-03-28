@@ -1,0 +1,72 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String
+  role      String   @default("user")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sessions  Session[]
+  uploads   Upload[]
+  syncStatus SyncStatus[]
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  userId       String
+  refreshToken String   @unique
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Upload {
+  id           String   @id @default(uuid())
+  userId       String
+  date         String
+  batchIndex   Int
+  batchTotal   Int
+  recordCount  Int
+  checksum     String
+  fileSize     Int
+  status       String   @default("pending")
+  errorMessage String?
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date, batchIndex])
+  @@index([userId, date])
+  @@index([createdAt])
+}
+
+model SyncStatus {
+  id            String   @id @default(uuid())
+  userId        String
+  lastSyncAt    DateTime?
+  lastFetchAt   DateTime?
+  totalRecords  Int      @default(0)
+  totalUploads  Int      @default(0)
+  dataTypes     String   @default("[]")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId])
+}

@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(echo $SHELL)",
+      "Bash(npm list:*)",
+      "Bash(mdfind:*)",
+      "Bash(echo $PATH)",
+      "Bash(grep -v \"^$\")",
+      "Bash(source ~/.zshrc)",
+      "Bash(claude --version)"
+    ]
+  }
+}

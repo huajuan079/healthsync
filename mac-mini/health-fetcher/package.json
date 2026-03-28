@@ -1,0 +1,20 @@
+{
+  "name": "health-fetcher",
+  "version": "1.0.0",
+  "description": "Mac Mini script to fetch health data from server",
+  "main": "dist/fetcher.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/fetcher.js",
+    "dev": "tsx src/fetcher.ts"
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}

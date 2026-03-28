@@ -40,18 +40,21 @@ final class SyncViewModel: ObservableObject {
     }
 
     func syncToday() {
+        print("[SyncViewModel] syncToday() called")
         Task {
             await requestAuthorizationAndSync(for: Date())
         }
     }
 
     func syncLastWeek() {
+        print("[SyncViewModel] syncLastWeek() called")
         Task {
             await performSyncRange(days: 7)
         }
     }
 
     func syncLast30Days() {
+        print("[SyncViewModel] syncLast30Days() called")
         Task {
             await performSyncRange(days: 30)
         }
@@ -59,20 +62,26 @@ final class SyncViewModel: ObservableObject {
 
     // Request authorization first, then sync
     private func requestAuthorizationAndSync(for date: Date) async {
+        print("[SyncViewModel] requestAuthorizationAndSync called for date: \(date)")
         // Check if already authorized
         let isAuthorized = UserDefaults.standard.bool(forKey: "healthkit_authorized")
+        print("[SyncViewModel] isAuthorized: \(isAuthorized)")
 
         if !isAuthorized {
             do {
+                print("[SyncViewModel] Requesting HealthKit authorization...")
                 let granted = try await healthRepository.requestAuthorization()
                 UserDefaults.standard.set(granted, forKey: "healthkit_authorized")
+                print("[SyncViewModel] Authorization granted: \(granted)")
 
                 if !granted {
                     errorMessage = "需要健康数据权限才能同步"
                     showError = true
+                    print("[SyncViewModel] Authorization denied, returning")
                     return
                 }
             } catch {
+                print("[SyncViewModel] Authorization error: \(error)")
                 errorMessage = "请求权限失败: \(error.localizedDescription)"
                 showError = true
                 return
@@ -89,11 +98,14 @@ final class SyncViewModel: ObservableObject {
     }
 
     private func performSync(for date: Date) async {
+        print("[SyncViewModel] performSync called for date: \(date)")
         isSyncing = true
         errorMessage = nil
 
         do {
+            print("[SyncViewModel] Calling syncUseCase.syncData...")
             let result = try await syncUseCase.syncData(for: date)
+            print("[SyncViewModel] syncData completed, result.success: \(result.success)")
 
             if result.success {
                 lastSyncTime = Date()
@@ -114,8 +126,10 @@ final class SyncViewModel: ObservableObject {
             } else {
                 errorMessage = result.errorMessage ?? "同步失败"
                 showError = true
+                print("[SyncViewModel] Sync failed: \(result.errorMessage ?? "unknown")")
             }
         } catch {
+            print("[SyncViewModel] Sync error: \(error)")
             errorMessage = error.localizedDescription
             showError = true
 
@@ -129,6 +143,7 @@ final class SyncViewModel: ObservableObject {
 
         isSyncing = false
         syncProgress = nil
+        print("[SyncViewModel] performSync finished")
     }
 
     private func performSyncRange(days: Int) async {

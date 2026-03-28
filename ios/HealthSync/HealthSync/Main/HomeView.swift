@@ -202,21 +202,30 @@ struct SyncOptionsCard: View {
                     icon: "sun.max.fill",
                     color: .appAccent,
                     isDisabled: isSyncing,
-                    action: onSyncToday
+                    action: {
+                        print("[HomeView] '同步今日' button tapped")
+                        onSyncToday()
+                    }
                 )
                 SyncOptionButton(
                     title: "同步最近7天",
                     icon: "calendar.badge.plus",
                     color: .stepsColor,
                     isDisabled: isSyncing,
-                    action: onSyncWeek
+                    action: {
+                        print("[HomeView] '同步7天' button tapped")
+                        onSyncWeek()
+                    }
                 )
                 SyncOptionButton(
                     title: "同步最近30天",
                     icon: "calendar",
                     color: .energyColor,
                     isDisabled: isSyncing,
-                    action: onSyncMonth
+                    action: {
+                        print("[HomeView] '同步30天' button tapped")
+                        onSyncMonth()
+                    }
                 )
             }
         }

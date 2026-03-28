@@ -26,9 +26,9 @@ async function startServer(): Promise<void> {
     // Create Express app
     const app = createApp();
 
-    // Start listening
-    const server = app.listen(config.port, () => {
-      logger.info(`Server listening on port ${config.port}`);
+    // Start listening (bind to all interfaces to allow iPhone connection)
+    const server = app.listen(config.port, '0.0.0.0', () => {
+      logger.info(`Server listening on http://0.0.0.0:${config.port}`);
       logger.info(`Environment: ${config.nodeEnv}`);
     });
 

@@ -52,10 +52,12 @@ final class HealthRepository: HealthRepositoryProtocol {
     }
 
     func fetchAllData(for date: Date) async throws -> AllHealthData {
+        print("[HealthRepository] fetchAllData called for date: \(date)")
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
         let dateString = dateFormatter.string(from: date)
 
+        print("[HealthRepository] Starting parallel data fetch...")
         async let sleep = fetchSleepData(for: date)
         async let heartRate = fetchHeartRateData(for: date)
         async let restingHR = fetchRestingHeartRate(for: date)
@@ -68,7 +70,7 @@ final class HealthRepository: HealthRepositoryProtocol {
         async let medications = fetchMedicationData(for: date)
         async let mindfulness = fetchMindfulnessData(for: date)
 
-        return try await AllHealthData(
+        let result = try await AllHealthData(
             date: dateString,
             syncTime: Date(),
             sleep: sleep,
@@ -83,6 +85,8 @@ final class HealthRepository: HealthRepositoryProtocol {
             medications: medications,
             mindfulness: mindfulness
         )
+        print("[HealthRepository] fetchAllData completed, steps: \(result.steps?.value ?? -1)")
+        return result
     }
 
     func fetchDataRange(from startDate: Date, to endDate: Date) async throws -> [AllHealthData] {
@@ -337,48 +341,42 @@ final class HealthRepository: HealthRepositoryProtocol {
     }
 
     private func fetchStepData(for date: Date) async -> StepData? {
+        print("[HealthRepository] fetchStepData called for date: \(date)")
         guard let stepType = HKQuantityType.quantityType(forIdentifier: .stepCount) else {
+            print("[HealthRepository] stepType not available")
             return nil
         }
 
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)
         guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
+            print("[HealthRepository] could not calculate endOfDay")
             return nil
         }
 
         let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: .strictStartDate)
 
         return await withCheckedContinuation { (continuation: CheckedContinuation<StepData?, Never>) in
-            let query = HKStatisticsCollectionQuery(quantityType: stepType, quantitySamplePredicate: predicate, options: .cumulativeSum, anchorDate: startOfDay, intervalComponents: DateComponents(day: 1))
-
-            query.initialResultsHandler = { _, results, error in
-                if let error = error {
-                    continuation.resume(returning: nil)
-                    return
-                }
-
-                guard let results = results else {
-                    continuation.resume(returning: nil)
-                    return
-                }
-
+            let query = HKStatisticsQuery(quantityType: stepType, quantitySamplePredicate: predicate, options: .cumulativeSum) { _, statistics, error in
                 let dateFormatter = DateFormatter()
                 dateFormatter.dateFormat = "yyyy-MM-dd"
                 let dateString = dateFormatter.string(from: date)
 
-                results.enumerateStatistics(from: startOfDay, to: endOfDay) { statistics, _ in
-                    let stepCount = statistics.sumQuantity()?.doubleValue(for: .count()) ?? 0
-
-                    let result = StepData(
-                        date: dateString,
-                        value: Int(stepCount),
-                        distance: nil,
-                        distanceUnit: nil
-                    )
-
-                    continuation.resume(returning: result)
+                if let error = error {
+                    print("[HealthRepository] fetchStepData error: \(error)")
                 }
+
+                let stepCount = statistics?.sumQuantity()?.doubleValue(for: .count()) ?? 0
+                print("[HealthRepository] fetchStepData stepCount: \(stepCount)")
+
+                let result = StepData(
+                    date: dateString,
+                    value: Int(stepCount),
+                    distance: nil,
+                    distanceUnit: nil
+                )
+
+                continuation.resume(returning: result)
             }
 
             healthStore.execute(query)

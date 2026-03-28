@@ -46,16 +46,19 @@ final class HomeViewModel: ObservableObject {
     }
 
     func syncToday() {
+        print("[HomeViewModel] syncToday() called")
         isSyncing = true
         syncViewModel.syncToday()
     }
 
     func syncLastWeek() {
+        print("[HomeViewModel] syncLastWeek() called")
         isSyncing = true
         syncViewModel.syncLastWeek()
     }
 
     func syncLast30Days() {
+        print("[HomeViewModel] syncLast30Days() called")
         isSyncing = true
         syncViewModel.syncLast30Days()
     }

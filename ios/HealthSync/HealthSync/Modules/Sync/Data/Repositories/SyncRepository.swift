@@ -11,9 +11,25 @@ final class SyncRepository: SyncRepositoryProtocol {
         self.apiService = apiService
     }
     func uploadBatch(_ batch: HealthDataBatch) async throws -> UploadResponse {
-        return try await apiService.request(.healthUpload(data: batch))
+        print("[SyncRepository] uploadBatch called for date: \(batch.date)")
+        do {
+            let response = try await apiService.request(.healthUpload(data: batch))
+            print("[SyncRepository] uploadBatch success")
+            return response
+        } catch {
+            print("[SyncRepository] uploadBatch error: \(error)")
+            throw error
+        }
     }
     func getSyncStatus() async throws -> SyncStatusResponse {
-        return try await apiService.request(.healthStatus)
+        print("[SyncRepository] getSyncStatus called")
+        do {
+            let status = try await apiService.request(.healthStatus)
+            print("[SyncRepository] getSyncStatus success")
+            return status
+        } catch {
+            print("[SyncRepository] getSyncStatus error: \(error)")
+            throw error
+        }
     }
 }

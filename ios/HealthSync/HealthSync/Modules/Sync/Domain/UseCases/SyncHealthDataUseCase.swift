@@ -76,19 +76,27 @@ final class SyncHealthDataUseCase: SyncHealthDataUseCaseProtocol {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
         let dateString = dateFormatter.string(from: date)
+        print("[SyncHealthDataUseCase] syncData started for date: \(dateString)")
 
         // Fetch health data
+        print("[SyncHealthDataUseCase] Fetching health data...")
         let healthData = try await healthRepository.fetchAllData(for: date)
+        print("[SyncHealthDataUseCase] Health data fetched, has steps: \(healthData.steps != nil)")
 
         // Serialize and encrypt
+        print("[SyncHealthDataUseCase] Encoding to JSON...")
         let jsonData = try JSONEncoder().encode(healthData)
         let jsonString = String(data: jsonData, encoding: .utf8)!
+        print("[SyncHealthDataUseCase] JSON encoded, size: \(jsonString.count) bytes")
 
         // Calculate checksum
         let checksum = encryptionService.calculateChecksum(jsonString.data(using: .utf8)!)
+        print("[SyncHealthDataUseCase] Checksum calculated: \(checksum)")
 
         // Create batch (for simplicity, single batch)
+        print("[SyncHealthDataUseCase] Encrypting data...")
         let encrypted = try encryptData(jsonString)
+        print("[SyncHealthDataUseCase] Data encrypted, encrypted size: \(encrypted.count) bytes")
 
         let batch = HealthDataBatch(
             date: dateString,
@@ -99,7 +107,9 @@ final class SyncHealthDataUseCase: SyncHealthDataUseCaseProtocol {
         )
 
         // Upload batch
+        print("[SyncHealthDataUseCase] Uploading batch...")
         let response = try await syncRepository.uploadBatch(batch)
+        print("[SyncHealthDataUseCase] Upload complete, receivedDate: \(response.receivedDate)")
 
         // Report progress
         onProgress?(SyncProgress(
@@ -111,6 +121,7 @@ final class SyncHealthDataUseCase: SyncHealthDataUseCaseProtocol {
         ))
 
         let totalRecords = estimateRecordCount(encrypted)
+        print("[SyncHealthDataUseCase] syncData completed, totalRecords: \(totalRecords)")
 
         return SyncResult(
             date: dateString,

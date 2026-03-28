@@ -90,9 +90,18 @@ final class APIService: APIServiceProtocol {
     }
 
     func request<T: Decodable>(_ endpoint: Endpoint) async throws -> T {
+        print("[APIService] request started: \(endpoint.path)")
         let request = try buildRequest(for: endpoint)
 
-        let (data, response) = try await session.data(for: request)
+        print("[APIService] Sending request to: \(request.url?.absoluteString ?? "unknown")")
+        let (data, response): (Data, URLResponse)
+        do {
+            (data, response) = try await session.data(for: request)
+            print("[APIService] Received response, data size: \(data.count) bytes")
+        } catch {
+            print("[APIService] Network error: \(error)")
+            throw APIError.networkError(error)
+        }
 
         try handleResponse(response)
 
@@ -101,14 +110,20 @@ final class APIService: APIServiceProtocol {
            httpResponse.statusCode == 401,
            endpoint != .login(username: "", password: ""),
            endpoint != .refreshToken(token: "") {
+            print("[APIService] 401 received, attempting token refresh")
             try await refreshAndRetry()
             return try await self.request(endpoint)
         }
 
         do {
             let decoded = try JSONDecoder().decode(T.self, from: data)
+            print("[APIService] Response decoded successfully")
             return decoded
         } catch {
+            print("[APIService] Decoding error: \(error)")
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print("[APIService] Response data: \(jsonString.prefix(200))...")
+            }
             throw APIError.decodingFailed(error)
         }
     }

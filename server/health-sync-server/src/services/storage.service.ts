@@ -118,6 +118,20 @@ export class StorageService {
   }
 
   /**
+   * Read a specific batch (returns raw encrypted data)
+   */
+  async readBatch(username: string, date: string, batchIndex: number): Promise<string> {
+    const batches = await this.getBatches(username, date);
+    const batch = batches.find(b => b.index === batchIndex);
+
+    if (!batch) {
+      throw new Error(`Batch ${batchIndex} not found for ${username} on ${date}`);
+    }
+
+    return batch.data;
+  }
+
+  /**
    * Delete data for a specific date
    */
   async deleteDate(username: string, date: string): Promise<void> {

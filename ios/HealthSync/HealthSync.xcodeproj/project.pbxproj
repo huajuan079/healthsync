@@ -35,6 +35,7 @@
 		A1A1A1BA0000000000000001 /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2A2A2A2000000000000026 /* HomeViewModel.swift */; };
 		A1A1A1BB0000000000000001 /* TabBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2A2A2A2000000000000027 /* TabBarView.swift */; };
 		B65190032F77862200AEB8E7 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B65190022F77862200AEB8E7 /* Launch Screen.storyboard */; };
+		C65190032F77862300AEB8E8 /* EncryptionConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = C65190022F77862300AEB8E8 /* EncryptionConfig.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -68,6 +69,7 @@
 		A2A2A2A2000000000000027 /* TabBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarView.swift; sourceTree = "<group>"; };
 		B65190022F77862200AEB8E7 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 		B65190042F77862300AEB8E7 /* HealthSync.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HealthSync.entitlements; sourceTree = "<group>"; };
+		C65190022F77862300AEB8E8 /* EncryptionConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncryptionConfig.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -126,6 +128,7 @@
 				A400001A000000000000001 /* DI */,
 				A400001B000000000000001 /* Keychain */,
 				A400001C000000000000001 /* UserDefaults */,
+				A400001D000000000000001 /* Config */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -191,6 +194,14 @@
 				A2A2A2A2000000000000007 /* UserDefaultsManager.swift */,
 			);
 			path = UserDefaults;
+			sourceTree = "<group>";
+		};
+		A400001D000000000000001 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				C65190022F77862300AEB8E8 /* EncryptionConfig.swift */,
+			);
+			path = Config;
 			sourceTree = "<group>";
 		};
 		A400002A000000000000001 /* Auth */ = {
@@ -613,6 +624,7 @@
 				A1A1A1B9000000000000001 /* HomeView.swift in Sources */,
 				A1A1A1BA0000000000000001 /* HomeViewModel.swift in Sources */,
 				A1A1A1BB0000000000000001 /* TabBarView.swift in Sources */,
+				C65190032F77862300AEB8E8 /* EncryptionConfig.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

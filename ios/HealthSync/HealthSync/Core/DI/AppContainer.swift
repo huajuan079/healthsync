@@ -36,7 +36,11 @@ final class AppContainer: ObservableObject {
     lazy var syncHealthDataUseCase = SyncHealthDataUseCase(
         healthRepository: healthRepository,
         syncRepository: syncRepository,
-        encryptionService: encryptionService
+        encryptionService: encryptionService,
+        getCurrentUsername: {
+            // Get username from UserDefaults
+            UserDefaultsManager.shared.username ?? "zhugong"
+        }
     )
 }
 

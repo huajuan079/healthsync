@@ -63,11 +63,12 @@ final class SyncViewModel: ObservableObject {
     // Request authorization first, then sync
     private func requestAuthorizationAndSync(for date: Date) async {
         print("[SyncViewModel] requestAuthorizationAndSync called for date: \(date)")
-        // Check if already authorized
-        let isAuthorized = UserDefaults.standard.bool(forKey: "healthkit_authorized")
-        print("[SyncViewModel] isAuthorized: \(isAuthorized)")
 
-        if !isAuthorized {
+        // Check actual HealthKit authorization status
+        let isFullyAuthorized = healthRepository.checkAuthorizationStatus()
+        print("[SyncViewModel] isFullyAuthorized: \(isFullyAuthorized)")
+
+        if !isFullyAuthorized {
             do {
                 print("[SyncViewModel] Requesting HealthKit authorization...")
                 let granted = try await healthRepository.requestAuthorization()

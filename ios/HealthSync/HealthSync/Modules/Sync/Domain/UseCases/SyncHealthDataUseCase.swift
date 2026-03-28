@@ -41,14 +41,37 @@ struct SyncProgress {
     }
 }
 
+// MARK: - Sync Error
+
+enum SyncError: LocalizedError {
+    case encryptionFailed
+
+    var errorDescription: String? {
+        switch self {
+        case .encryptionFailed:
+            return "加密失败"
+        }
+    }
+}
+
 // MARK: - Sync Health Data Use Case
 
 final class SyncHealthDataUseCase: SyncHealthDataUseCaseProtocol {
     private let healthRepository: HealthRepositoryProtocol
     private let syncRepository: SyncRepositoryProtocol
     private let encryptionService: EncryptionServiceProtocol
+    private let getCurrentUsername: () -> String
 
-    private let encryptionKey: SymmetricKey
+    private var encryptionKey: SymmetricKey {
+        let username = getCurrentUsername()
+        if let key = EncryptionConfig.getKey(for: username) {
+            return key
+        }
+        // Fallback to a default key (for development only)
+        print("[SyncHealthDataUseCase] Warning: Using fallback key for user: \(username)")
+        return AESEncryptionService.generateKey()
+    }
+
     private let batchSize = 500
 
     // Progress reporting
@@ -58,18 +81,12 @@ final class SyncHealthDataUseCase: SyncHealthDataUseCaseProtocol {
         healthRepository: HealthRepositoryProtocol,
         syncRepository: SyncRepositoryProtocol,
         encryptionService: EncryptionServiceProtocol,
-        encryptionKey: SymmetricKey? = nil
+        getCurrentUsername: @escaping () -> String = { "zhugong" }
     ) {
         self.healthRepository = healthRepository
         self.syncRepository = syncRepository
         self.encryptionService = encryptionService
-
-        // Use provided key or generate a new one
-        if let key = encryptionKey {
-            self.encryptionKey = key
-        } else {
-            self.encryptionKey = AESEncryptionService.generateKey()
-        }
+        self.getCurrentUsername = getCurrentUsername
     }
 
     func syncData(for date: Date) async throws -> SyncResult {
@@ -80,7 +97,7 @@ final class SyncHealthDataUseCase: SyncHealthDataUseCaseProtocol {
 
         // Fetch health data
         print("[SyncHealthDataUseCase] Fetching health data...")
-        let healthData = try await healthRepository.fetchAllData(for: date)
+        let healthData = await healthRepository.fetchAllData(for: date)
         print("[SyncHealthDataUseCase] Health data fetched, has steps: \(healthData.steps != nil)")
 
         // Serialize and encrypt
@@ -89,14 +106,17 @@ final class SyncHealthDataUseCase: SyncHealthDataUseCaseProtocol {
         let jsonString = String(data: jsonData, encoding: .utf8)!
         print("[SyncHealthDataUseCase] JSON encoded, size: \(jsonString.count) bytes")
 
-        // Calculate checksum
-        let checksum = encryptionService.calculateChecksum(jsonString.data(using: .utf8)!)
-        print("[SyncHealthDataUseCase] Checksum calculated: \(checksum)")
-
         // Create batch (for simplicity, single batch)
         print("[SyncHealthDataUseCase] Encrypting data...")
         let encrypted = try encryptData(jsonString)
         print("[SyncHealthDataUseCase] Data encrypted, encrypted size: \(encrypted.count) bytes")
+
+        // Calculate checksum on encrypted data (must match server verification)
+        guard let encryptedData = encrypted.data(using: .utf8) else {
+            throw SyncError.encryptionFailed
+        }
+        let checksum = encryptionService.calculateChecksum(encryptedData)
+        print("[SyncHealthDataUseCase] Checksum calculated on encrypted data: \(checksum)")
 
         let batch = HealthDataBatch(
             date: dateString,
@@ -109,7 +129,7 @@ final class SyncHealthDataUseCase: SyncHealthDataUseCaseProtocol {
         // Upload batch
         print("[SyncHealthDataUseCase] Uploading batch...")
         let response = try await syncRepository.uploadBatch(batch)
-        print("[SyncHealthDataUseCase] Upload complete, receivedDate: \(response.receivedDate)")
+        print("[SyncHealthDataUseCase] Upload complete, batchId: \(response.batchId), message: \(response.message)")
 
         // Report progress
         onProgress?(SyncProgress(
@@ -158,8 +178,10 @@ final class SyncHealthDataUseCase: SyncHealthDataUseCaseProtocol {
 
             } catch {
                 // Continue with next day on error
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "yyyy-MM-dd"
                 results.append(SyncResult(
-                    date: DateFormatter.dateOnly.string(from: currentDate),
+                    date: dateFormatter.string(from: currentDate),
                     batchesUploaded: 0,
                     totalRecords: 0,
                     success: false,

@@ -6,9 +6,10 @@ import HealthKit
 protocol HealthRepositoryProtocol {
     func isHealthDataAvailable() -> Bool
     func requestAuthorization() async throws -> Bool
-    func fetchAllData(for date: Date) async throws -> AllHealthData
-    func fetchDataRange(from startDate: Date, to endDate: Date) async throws -> [AllHealthData]
-    func getTodaySummary() async throws -> TodayHealthSummary
+    func checkAuthorizationStatus() -> Bool
+    func fetchAllData(for date: Date) async -> AllHealthData
+    func fetchDataRange(from startDate: Date, to endDate: Date) async -> [AllHealthData]
+    func getTodaySummary() async -> TodayHealthSummary
 }
 
 // MARK: - Today's Health Summary
@@ -39,23 +40,39 @@ final class HealthRepository: HealthRepositoryProtocol {
         }
 
         let typesToRead = HealthQueryFactory.shared.dataTypesToRead
+        print("[HealthRepository] Requesting authorization for \(typesToRead.count) types")
 
         return try await withCheckedThrowingContinuation { continuation in
             healthStore.requestAuthorization(toShare: nil, read: typesToRead) { success, error in
                 if let error = error {
+                    print("[HealthRepository] Authorization error: \(error)")
                     continuation.resume(throwing: HealthError.queryError(error))
                 } else {
+                    print("[HealthRepository] Authorization success: \(success)")
                     continuation.resume(returning: success)
                 }
             }
         }
     }
 
-    func fetchAllData(for date: Date) async throws -> AllHealthData {
+    func checkAuthorizationStatus() -> Bool {
+        let typesToRead = HealthQueryFactory.shared.dataTypesToRead
+        var allAuthorized = true
+
+        for type in typesToRead {
+            let status = healthStore.authorizationStatus(for: type)
+            print("[HealthRepository] Auth status for \(type): \(status)")
+            if status == .notDetermined {
+                allAuthorized = false
+            }
+        }
+
+        return allAuthorized
+    }
+
+    func fetchAllData(for date: Date) async -> AllHealthData {
         print("[HealthRepository] fetchAllData called for date: \(date)")
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-        let dateString = dateFormatter.string(from: date)
+        let dateString = formatDate(date)
 
         print("[HealthRepository] Starting parallel data fetch...")
         async let sleep = fetchSleepData(for: date)
@@ -70,7 +87,7 @@ final class HealthRepository: HealthRepositoryProtocol {
         async let medications = fetchMedicationData(for: date)
         async let mindfulness = fetchMindfulnessData(for: date)
 
-        let result = try await AllHealthData(
+        let result = await AllHealthData(
             date: dateString,
             syncTime: Date(),
             sleep: sleep,
@@ -89,7 +106,7 @@ final class HealthRepository: HealthRepositoryProtocol {
         return result
     }
 
-    func fetchDataRange(from startDate: Date, to endDate: Date) async throws -> [AllHealthData] {
+    func fetchDataRange(from startDate: Date, to endDate: Date) async -> [AllHealthData] {
         var dates: [Date] = []
         var currentDate = startDate
 
@@ -104,28 +121,23 @@ final class HealthRepository: HealthRepositoryProtocol {
         var result: [AllHealthData] = []
 
         for date in dates {
-            do {
-                let data = try await fetchAllData(for: date)
-                result.append(data)
-            } catch {
-                // Skip dates with no data
-                continue
-            }
+            let data = await fetchAllData(for: date)
+            result.append(data)
         }
 
         return result
     }
 
-    func getTodaySummary() async throws -> TodayHealthSummary {
+    func getTodaySummary() async -> TodayHealthSummary {
         let today = Date()
 
         async let steps = fetchStepData(for: today)
         async let restingHR = fetchRestingHeartRate(for: today)
         async let sleep = fetchSleepData(for: today)
 
-        let stepsData = try await steps
-        let restingHRData = try await restingHR
-        let sleepData = try await sleep
+        let stepsData = await steps
+        let restingHRData = await restingHR
+        let sleepData = await sleep
 
         let totalSleepDuration = sleepData.reduce(0.0) { sum, item in
             if item.type == .asleep || item.type == .asleepCore || item.type == .asleepDeep || item.type == .asleepREM {
@@ -142,10 +154,25 @@ final class HealthRepository: HealthRepositoryProtocol {
         )
     }
 
+    // MARK: - Private Helper Methods
+
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: date)
+    }
+
     // MARK: - Private Fetch Methods
 
-    private func fetchSleepData(for date: Date) async throws -> [SleepData] {
+    private func fetchSleepData(for date: Date) async -> [SleepData] {
         guard let sleepType = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) else {
+            return []
+        }
+
+        // Check authorization status
+        let authStatus = healthStore.authorizationStatus(for: sleepType)
+        if authStatus == .notDetermined || authStatus == .sharingDenied {
+            print("[HealthRepository] Sleep not authorized, returning empty")
             return []
         }
 
@@ -157,10 +184,13 @@ final class HealthRepository: HealthRepositoryProtocol {
 
         let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: .strictStartDate)
 
-        return try await withCheckedThrowingContinuation { continuation in
+        return await withCheckedContinuation { continuation in
             let query = HKSampleQuery(sampleType: sleepType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, error in
+                let dateString = self.formatDate(date)
+
                 if let error = error {
-                    continuation.resume(throwing: HealthError.queryError(error))
+                    print("[HealthRepository] Sleep fetch error: \(error)")
+                    continuation.resume(returning: [])
                     return
                 }
 
@@ -168,10 +198,6 @@ final class HealthRepository: HealthRepositoryProtocol {
                     continuation.resume(returning: [])
                     return
                 }
-
-                let dateFormatter = DateFormatter()
-                dateFormatter.dateFormat = "yyyy-MM-dd"
-                let dateString = dateFormatter.string(from: date)
 
                 let result = sleepSamples.compactMap { sample -> SleepData? in
                     let type: SleepData.SleepType
@@ -210,34 +236,42 @@ final class HealthRepository: HealthRepositoryProtocol {
         }
     }
 
-    private func fetchHeartRateData(for date: Date) async throws -> HeartRateData {
+    private func fetchHeartRateData(for date: Date) async -> HeartRateData {
         guard let heartRateType = HKQuantityType.quantityType(forIdentifier: .heartRate) else {
-            throw HealthError.dataNotAvailable
+            print("[HealthRepository] Heart rate type not available")
+            return HeartRateData(date: formatDate(date), samples: [])
+        }
+
+        // Check authorization status
+        let authStatus = healthStore.authorizationStatus(for: heartRateType)
+        print("[HealthRepository] Heart rate auth status: \(authStatus.rawValue)")
+        if authStatus == .notDetermined || authStatus == .sharingDenied {
+            print("[HealthRepository] Heart rate not authorized, returning empty")
+            return HeartRateData(date: formatDate(date), samples: [])
         }
 
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)
         guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
-            throw HealthError.dataNotAvailable
+            return HeartRateData(date: formatDate(date), samples: [])
         }
 
         let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: .strictStartDate)
 
-        return try await withCheckedThrowingContinuation { continuation in
+        return await withCheckedContinuation { continuation in
             let query = HKSampleQuery(sampleType: heartRateType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, error in
+                let dateString = self.formatDate(date)
+
                 if let error = error {
-                    continuation.resume(throwing: HealthError.queryError(error))
+                    print("[HealthRepository] Heart rate fetch error: \(error)")
+                    continuation.resume(returning: HeartRateData(date: dateString, samples: []))
                     return
                 }
 
                 guard let heartSamples = samples as? [HKQuantitySample] else {
-                    continuation.resume(throwing: HealthError.dataNotAvailable)
+                    continuation.resume(returning: HeartRateData(date: dateString, samples: []))
                     return
                 }
-
-                let dateFormatter = DateFormatter()
-                dateFormatter.dateFormat = "yyyy-MM-dd"
-                let dateString = dateFormatter.string(from: date)
 
                 let samples = heartSamples.map { sample in
                     HeartRateData.HeartSample(
@@ -247,15 +281,23 @@ final class HealthRepository: HealthRepositoryProtocol {
                     )
                 }
 
+                print("[HealthRepository] Heart rate samples fetched: \(samples.count)")
                 continuation.resume(returning: HeartRateData(date: dateString, samples: samples))
             }
 
-            healthStore.execute(query)
+            self.healthStore.execute(query)
         }
     }
 
-    private func fetchRestingHeartRate(for date: Date) async throws -> RestingHeartRateData? {
+    private func fetchRestingHeartRate(for date: Date) async -> RestingHeartRateData? {
         guard let restingHRType = HKQuantityType.quantityType(forIdentifier: .restingHeartRate) else {
+            return nil
+        }
+
+        // Check authorization status
+        let authStatus = healthStore.authorizationStatus(for: restingHRType)
+        if authStatus == .notDetermined || authStatus == .sharingDenied {
+            print("[HealthRepository] Resting heart rate not authorized, returning nil")
             return nil
         }
 
@@ -267,10 +309,11 @@ final class HealthRepository: HealthRepositoryProtocol {
 
         let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: .strictStartDate)
 
-        return try await withCheckedThrowingContinuation { continuation in
+        return await withCheckedContinuation { continuation in
             let query = HKSampleQuery(sampleType: restingHRType, predicate: predicate, limit: 1, sortDescriptors: nil) { _, samples, error in
                 if let error = error {
-                    continuation.resume(throwing: HealthError.queryError(error))
+                    print("[HealthRepository] Resting heart rate fetch error: \(error)")
+                    continuation.resume(returning: nil)
                     return
                 }
 
@@ -279,9 +322,7 @@ final class HealthRepository: HealthRepositoryProtocol {
                     return
                 }
 
-                let dateFormatter = DateFormatter()
-                dateFormatter.dateFormat = "yyyy-MM-dd"
-                let dateString = dateFormatter.string(from: date)
+                let dateString = self.formatDate(date)
 
                 let result = RestingHeartRateData(
                     date: dateString,
@@ -296,34 +337,40 @@ final class HealthRepository: HealthRepositoryProtocol {
         }
     }
 
-    private func fetchHRVData(for date: Date) async throws -> HRVData {
+    private func fetchHRVData(for date: Date) async -> HRVData {
         guard let hrvType = HKQuantityType.quantityType(forIdentifier: .heartRateVariabilitySDNN) else {
-            throw HealthError.dataNotAvailable
+            return HRVData(date: formatDate(date), samples: [])
+        }
+
+        // Check authorization status
+        let authStatus = healthStore.authorizationStatus(for: hrvType)
+        if authStatus == .notDetermined || authStatus == .sharingDenied {
+            print("[HealthRepository] HRV not authorized, returning empty")
+            return HRVData(date: formatDate(date), samples: [])
         }
 
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)
         guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
-            throw HealthError.dataNotAvailable
+            return HRVData(date: formatDate(date), samples: [])
         }
 
         let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: .strictStartDate)
 
-        return try await withCheckedThrowingContinuation { continuation in
+        return await withCheckedContinuation { continuation in
             let query = HKSampleQuery(sampleType: hrvType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, error in
+                let dateString = self.formatDate(date)
+
                 if let error = error {
-                    continuation.resume(throwing: HealthError.queryError(error))
+                    print("[HealthRepository] HRV fetch error: \(error)")
+                    continuation.resume(returning: HRVData(date: dateString, samples: []))
                     return
                 }
 
                 guard let hrvSamples = samples as? [HKQuantitySample] else {
-                    continuation.resume(throwing: HealthError.dataNotAvailable)
+                    continuation.resume(returning: HRVData(date: dateString, samples: []))
                     return
                 }
-
-                let dateFormatter = DateFormatter()
-                dateFormatter.dateFormat = "yyyy-MM-dd"
-                let dateString = dateFormatter.string(from: date)
 
                 let samples = hrvSamples.map { sample in
                     HRVData.HRVSample(
@@ -383,7 +430,16 @@ final class HealthRepository: HealthRepositoryProtocol {
         }
     }
 
-    private func fetchWorkouts(for date: Date) async throws -> [WorkoutData] {
+    private func fetchWorkouts(for date: Date) async -> [WorkoutData] {
+        let workoutType = HKObjectType.workoutType()
+
+        // Check authorization status
+        let authStatus = healthStore.authorizationStatus(for: workoutType)
+        if authStatus == .notDetermined || authStatus == .sharingDenied {
+            print("[HealthRepository] Workouts not authorized, returning empty")
+            return []
+        }
+
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)
         guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
@@ -392,10 +448,11 @@ final class HealthRepository: HealthRepositoryProtocol {
 
         let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: .strictStartDate)
 
-        return try await withCheckedThrowingContinuation { continuation in
-            let query = HKSampleQuery(sampleType: HKObjectType.workoutType(), predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, error in
+        return await withCheckedContinuation { continuation in
+            let query = HKSampleQuery(sampleType: workoutType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, error in
                 if let error = error {
-                    continuation.resume(throwing: HealthError.queryError(error))
+                    print("[HealthRepository] Workouts fetch error: \(error)")
+                    continuation.resume(returning: [])
                     return
                 }
 
@@ -447,34 +504,40 @@ final class HealthRepository: HealthRepositoryProtocol {
         }
     }
 
-    private func fetchBloodOxygenData(for date: Date) async throws -> BloodOxygenData {
+    private func fetchBloodOxygenData(for date: Date) async -> BloodOxygenData {
         guard let oxygenType = HKQuantityType.quantityType(forIdentifier: .oxygenSaturation) else {
-            throw HealthError.dataNotAvailable
+            return BloodOxygenData(date: formatDate(date), samples: [])
+        }
+
+        // Check authorization status
+        let authStatus = healthStore.authorizationStatus(for: oxygenType)
+        if authStatus == .notDetermined || authStatus == .sharingDenied {
+            print("[HealthRepository] Blood oxygen not authorized, returning empty")
+            return BloodOxygenData(date: formatDate(date), samples: [])
         }
 
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)
         guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
-            throw HealthError.dataNotAvailable
+            return BloodOxygenData(date: formatDate(date), samples: [])
         }
 
         let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: .strictStartDate)
 
-        return try await withCheckedThrowingContinuation { continuation in
+        return await withCheckedContinuation { continuation in
             let query = HKSampleQuery(sampleType: oxygenType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, error in
+                let dateString = self.formatDate(date)
+
                 if let error = error {
-                    continuation.resume(throwing: HealthError.queryError(error))
+                    print("[HealthRepository] Blood oxygen fetch error: \(error)")
+                    continuation.resume(returning: BloodOxygenData(date: dateString, samples: []))
                     return
                 }
 
                 guard let oxygenSamples = samples as? [HKQuantitySample] else {
-                    continuation.resume(returning: BloodOxygenData(date: "", samples: []))
+                    continuation.resume(returning: BloodOxygenData(date: dateString, samples: []))
                     return
                 }
-
-                let dateFormatter = DateFormatter()
-                dateFormatter.dateFormat = "yyyy-MM-dd"
-                let dateString = dateFormatter.string(from: date)
 
                 let samples = oxygenSamples.map { sample in
                     BloodOxygenData.OxygenSample(
@@ -491,13 +554,20 @@ final class HealthRepository: HealthRepositoryProtocol {
         }
     }
 
-    private func fetchMenstrualData(for date: Date) async throws -> [MenstrualData] {
+    private func fetchMenstrualData(for date: Date) async -> [MenstrualData] {
         // Menstrual data access may require iOS 17+
         return []
     }
 
-    private func fetchWeightData(for date: Date) async throws -> WeightData? {
+    private func fetchWeightData(for date: Date) async -> WeightData? {
         guard let weightType = HKQuantityType.quantityType(forIdentifier: .bodyMass) else {
+            return nil
+        }
+
+        // Check authorization status
+        let authStatus = healthStore.authorizationStatus(for: weightType)
+        if authStatus == .notDetermined || authStatus == .sharingDenied {
+            print("[HealthRepository] Weight not authorized, returning nil")
             return nil
         }
 
@@ -509,10 +579,11 @@ final class HealthRepository: HealthRepositoryProtocol {
 
         let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: .strictStartDate)
 
-        return try await withCheckedThrowingContinuation { continuation in
+        return await withCheckedContinuation { continuation in
             let query = HKSampleQuery(sampleType: weightType, predicate: predicate, limit: 1, sortDescriptors: nil) { _, samples, error in
                 if let error = error {
-                    continuation.resume(throwing: HealthError.queryError(error))
+                    print("[HealthRepository] Weight fetch error: \(error)")
+                    continuation.resume(returning: nil)
                     return
                 }
 
@@ -521,9 +592,7 @@ final class HealthRepository: HealthRepositoryProtocol {
                     return
                 }
 
-                let dateFormatter = DateFormatter()
-                dateFormatter.dateFormat = "yyyy-MM-dd"
-                let dateString = dateFormatter.string(from: date)
+                let dateString = self.formatDate(date)
 
                 let result = WeightData(
                     date: dateString,
@@ -540,12 +609,19 @@ final class HealthRepository: HealthRepositoryProtocol {
         }
     }
 
-    private func fetchMedicationData(for date: Date) async throws -> [MedicationData] {
+    private func fetchMedicationData(for date: Date) async -> [MedicationData] {
         return []
     }
 
-    private func fetchMindfulnessData(for date: Date) async throws -> [MindfulnessData] {
+    private func fetchMindfulnessData(for date: Date) async -> [MindfulnessData] {
         guard let mindfulType = HKObjectType.categoryType(forIdentifier: .mindfulSession) else {
+            return []
+        }
+
+        // Check authorization status
+        let authStatus = healthStore.authorizationStatus(for: mindfulType)
+        if authStatus == .notDetermined || authStatus == .sharingDenied {
+            print("[HealthRepository] Mindfulness not authorized, returning empty")
             return []
         }
 
@@ -557,10 +633,11 @@ final class HealthRepository: HealthRepositoryProtocol {
 
         let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: .strictStartDate)
 
-        return try await withCheckedThrowingContinuation { continuation in
+        return await withCheckedContinuation { continuation in
             let query = HKSampleQuery(sampleType: mindfulType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, error in
                 if let error = error {
-                    continuation.resume(throwing: HealthError.queryError(error))
+                    print("[HealthRepository] Mindfulness fetch error: \(error)")
+                    continuation.resume(returning: [])
                     return
                 }
 

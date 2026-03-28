@@ -22,6 +22,9 @@ final class LoginViewModel: ObservableObject {
         isLoading = true
         do {
             try await loginUseCase.execute(username: username, password: password)
+            // Save username for encryption key lookup
+            UserDefaultsManager.shared.username = username
+            print("[LoginViewModel] Username saved: \(username)")
             isLoading = false
         } catch {
             isLoading = false

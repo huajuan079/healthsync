@@ -78,6 +78,43 @@ export function verifyChecksum(data: string, checksum: string): boolean {
 }
 
 /**
+ * Decrypt iOS encrypted data (AES-256-GCM with format: iv:tag:ciphertext in base64)
+ */
+export function decryptIOSEncryptedData(encryptedBase64: string, username: string): string {
+  try {
+    const key = getEncryptionKey(username);
+
+    // Split the encrypted data format: iv:tag:ciphertext
+    const parts = encryptedBase64.split(':');
+    if (parts.length !== 3) {
+      throw new Error('Invalid encrypted data format. Expected iv:tag:ciphertext');
+    }
+
+    const [ivBase64, tagBase64, ciphertextBase64] = parts;
+
+    // Decode base64
+    const iv = Buffer.from(ivBase64, 'base64');
+    const tag = Buffer.from(tagBase64, 'base64');
+    const ciphertext = Buffer.from(ciphertextBase64, 'base64');
+
+    // Create decipher
+    const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
+
+    // Set auth tag (tag in GCM mode)
+    decipher.setAuthTag(tag);
+
+    // Decrypt
+    let decrypted = decipher.update(ciphertext, undefined, 'utf8');
+    decrypted += decipher.final('utf8');
+
+    return decrypted;
+  } catch (error) {
+    console.error('Decryption error:', error);
+    throw new Error('Failed to decrypt data: ' + (error as Error).message);
+  }
+}
+
+/**
  * Derive key from password using PBKDF2
  */
 export function deriveKey(password: string, salt?: string): {

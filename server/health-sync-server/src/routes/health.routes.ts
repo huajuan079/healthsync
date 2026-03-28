@@ -34,4 +34,16 @@ router.delete('/cleanup', authenticate, healthController.cleanup.bind(healthCont
  */
 router.get('/healthcheck', healthController.healthcheck.bind(healthController));
 
+/**
+ * GET /health/web/uploads
+ * Web interface to view upload records (HTML page)
+ */
+router.get('/web/uploads', healthController.viewUploads.bind(healthController));
+
+/**
+ * GET /health/web/upload/:id
+ * Web interface to view single upload detail
+ */
+router.get('/web/upload/:id', healthController.viewUploadDetail.bind(healthController));
+
 export { router as healthRoutes };

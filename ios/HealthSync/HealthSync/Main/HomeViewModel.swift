@@ -65,10 +65,8 @@ final class HomeViewModel: ObservableObject {
 
     func loadTodaySummary() {
         Task {
-            do {
-                let summary = try await healthRepository.getTodaySummary()
-                todaySummary = summary
-            } catch { todaySummary = nil }
+            let summary = await healthRepository.getTodaySummary()
+            todaySummary = summary
         }
     }
 

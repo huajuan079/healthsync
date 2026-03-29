@@ -61,6 +61,9 @@ struct ContentView: View {
         .task {
             await checkAuthentication()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .didLogin)) { _ in
+            isAuthenticated = true
+        }
         .onReceive(NotificationCenter.default.publisher(for: .didLogout)) { _ in
             isAuthenticated = false
         }
@@ -77,4 +80,5 @@ struct ContentView: View {
 
 extension Notification.Name {
     static let didLogout = Notification.Name("didLogout")
+    static let didLogin = Notification.Name("didLogin")
 }

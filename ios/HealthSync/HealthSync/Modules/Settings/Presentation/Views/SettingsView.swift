@@ -22,21 +22,38 @@ struct SettingsView: View {
                     }
                     Spacer()
                 }.padding(.vertical, 8)
-            } header: { Text("账户") }
+            } header: {
+                Text("账户")
+                    .font(.subheadline)
+                    .foregroundColor(.secondaryText)
+                    .textCase(.none)
+            }
+            .listRowBackground(Color.secondaryBackground)
 
             Section {
-                Picker("同步范围", selection: $viewModel.syncRange) {
-                    Text("7天").tag(7)
-                    Text("30天").tag(30)
-                    Text("全部").tag(-1)
+                HStack {
+                    Text("同步范围").foregroundColor(.text)
+                    Spacer()
+                    Picker("", selection: $viewModel.syncRange) {
+                        Text("7天").tag(7)
+                        Text("30天").tag(30)
+                        Text("全部").tag(-1)
+                    }
+                    .foregroundColor(.text)
+                    .onChange(of: viewModel.syncRange) { _ in viewModel.saveSettings() }
                 }
-                .onChange(of: viewModel.syncRange) { _ in viewModel.saveSettings() }
                 HStack {
                     Text("自动同步").foregroundColor(.text)
                     Spacer()
                     Text("每天 23:00").foregroundColor(.secondaryText)
                 }
-            } header: { Text("同步设置") }
+            } header: {
+                Text("同步设置")
+                    .font(.subheadline)
+                    .foregroundColor(.secondaryText)
+                    .textCase(.none)
+            }
+            .listRowBackground(Color.secondaryBackground)
 
             Section {
                 HStack {
@@ -48,9 +65,15 @@ struct SettingsView: View {
                 }
                 .onChange(of: viewModel.serverURL) { _ in viewModel.saveSettings() }
                 Button("测试连接") { }.foregroundColor(.appAccent)
-            } header: { Text("服务器") } footer: {
+            } header: {
+                Text("服务器")
+                    .font(.subheadline)
+                    .foregroundColor(.secondaryText)
+                    .textCase(.none)
+            } footer: {
                 Text("修改服务器地址后需要重新登录").foregroundColor(.tertiaryText)
             }
+            .listRowBackground(Color.secondaryBackground)
 
             Section {
                 Button("检查授权状态") {
@@ -86,9 +109,15 @@ struct SettingsView: View {
                     .foregroundColor(.secondaryText)
                     .font(.caption)
                 }
-            } header: { Text("健康数据权限") } footer: {
+            } header: {
+                Text("健康数据权限")
+                    .font(.subheadline)
+                    .foregroundColor(.secondaryText)
+                    .textCase(.none)
+            } footer: {
                 Text("💡 如果之前拒绝了授权，系统不会再次弹窗。请点击「打开健康设置」手动开启权限。").foregroundColor(.tertiaryText)
             }
+            .listRowBackground(Color.secondaryBackground)
 
             Section {
                 HStack {
@@ -96,7 +125,13 @@ struct SettingsView: View {
                     Spacer()
                     Text("1.0.0").foregroundColor(.secondaryText)
                 }
-            } header: { Text("关于") }
+            } header: {
+                Text("关于")
+                    .font(.subheadline)
+                    .foregroundColor(.secondaryText)
+                    .textCase(.none)
+            }
+            .listRowBackground(Color.secondaryBackground)
 
             Section {
                 Button(role: .destructive) {
@@ -104,11 +139,13 @@ struct SettingsView: View {
                 } label: {
                     HStack { Spacer(); Text("退出登录"); Spacer() }
                 }
-            }
+            } header: { EmptyView() }
+            .listRowBackground(Color.secondaryBackground)
         }
         .background(Color.background)
         .scrollContentBackground(.hidden)
         .navigationTitle("设置")
+        .navigationBarTitleDisplayMode(.inline)
         .alert("退出登录", isPresented: $viewModel.showingLogoutAlert) {
             Button("取消", role: .cancel) {}
             Button("退出", role: .destructive) { viewModel.logout() }

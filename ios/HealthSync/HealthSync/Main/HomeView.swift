@@ -91,11 +91,14 @@ struct StatusCard: View {
                     HStack(spacing: 8) {
                         ProgressView().scaleEffect(0.8)
                         Text("正在同步...")
+                            .foregroundColor(.text)
                     }
                 } else if let t = lastSyncTime {
                     Text("上次同步: \(t, style: .relative)")
+                        .foregroundColor(.text)
                 } else {
                     Text("尚未同步")
+                        .foregroundColor(.text)
                 }
             }
             Spacer()

@@ -26,6 +26,8 @@ final class LoginViewModel: ObservableObject {
             UserDefaultsManager.shared.username = username
             print("[LoginViewModel] Username saved: \(username)")
             isLoading = false
+            // Notify that login succeeded
+            NotificationCenter.default.post(name: .didLogin, object: nil)
         } catch {
             isLoading = false
             errorMessage = (error as? AuthError)?.errorDescription ?? error.localizedDescription

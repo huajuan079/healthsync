@@ -45,10 +45,13 @@ final class HealthRepository: HealthRepositoryProtocol {
         return try await withCheckedThrowingContinuation { continuation in
             healthStore.requestAuthorization(toShare: nil, read: typesToRead) { success, error in
                 if let error = error {
-                    print("[HealthRepository] Authorization error: \(error)")
+                    print("[HealthRepository] Authorization request error: \(error)")
                     continuation.resume(throwing: HealthError.queryError(error))
                 } else {
-                    print("[HealthRepository] Authorization success: \(success)")
+                    // 注意：success 只表示请求是否完成，不表示用户是否授权
+                    // 需要调用 checkAuthorizationStatus 来确认实际授权状态
+                    print("[HealthRepository] Authorization request completed: \(success)")
+                    print("[HealthRepository] Note: Please check actual authorization status using checkAuthorizationStatus()")
                     continuation.resume(returning: success)
                 }
             }
@@ -61,12 +64,15 @@ final class HealthRepository: HealthRepositoryProtocol {
 
         for type in typesToRead {
             let status = healthStore.authorizationStatus(for: type)
-            print("[HealthRepository] Auth status for \(type): \(status)")
-            if status == .notDetermined {
+            print("[HealthRepository] Auth status for \(type): \(status.rawValue)")
+            // 只有 sharingAuthorized (2) 才是真正授权了
+            if status != .sharingAuthorized {
                 allAuthorized = false
+                print("[HealthRepository] \(type) not authorized (status: \(status.rawValue))")
             }
         }
 
+        print("[HealthRepository] checkAuthorizationStatus result: \(allAuthorized)")
         return allAuthorized
     }
 
@@ -169,20 +175,22 @@ final class HealthRepository: HealthRepositoryProtocol {
             return []
         }
 
-        // Check authorization status
-        let authStatus = healthStore.authorizationStatus(for: sleepType)
-        if authStatus == .notDetermined || authStatus == .sharingDenied {
-            print("[HealthRepository] Sleep not authorized, returning empty")
-            return []
-        }
+        print("[HealthRepository] Fetching sleep data for date: \(date)")
 
         let calendar = Calendar.current
+        // 睡眠数据通常跨午夜，所以查询前一天晚上到今天晚上
+        // 例如查询 3月29日 的睡眠，范围是 3月28日 20:00 - 3月29日 20:00
         let startOfDay = calendar.startOfDay(for: date)
-        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
+        guard let startRange = calendar.date(byAdding: .hour, value: -4, to: startOfDay) else {
+            return []
+        }
+        guard let endRange = calendar.date(byAdding: .hour, value: 20, to: startOfDay) else {
             return []
         }
 
-        let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: .strictStartDate)
+        print("[HealthRepository] Sleep query range: \(startRange) to \(endRange)")
+
+        let predicate = HKQuery.predicateForSamples(withStart: startRange, end: endRange, options: [])
 
         return await withCheckedContinuation { continuation in
             let query = HKSampleQuery(sampleType: sleepType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, error in
@@ -242,13 +250,8 @@ final class HealthRepository: HealthRepositoryProtocol {
             return HeartRateData(date: formatDate(date), samples: [])
         }
 
-        // Check authorization status
-        let authStatus = healthStore.authorizationStatus(for: heartRateType)
-        print("[HealthRepository] Heart rate auth status: \(authStatus.rawValue)")
-        if authStatus == .notDetermined || authStatus == .sharingDenied {
-            print("[HealthRepository] Heart rate not authorized, returning empty")
-            return HeartRateData(date: formatDate(date), samples: [])
-        }
+        // 直接尝试读取数据，不检查授权状态（authorizationStatus 有时不准确）
+        print("[HealthRepository] Fetching heart rate data for date: \(date)")
 
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)
@@ -256,7 +259,7 @@ final class HealthRepository: HealthRepositoryProtocol {
             return HeartRateData(date: formatDate(date), samples: [])
         }
 
-        let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: .strictStartDate)
+        let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: [])
 
         return await withCheckedContinuation { continuation in
             let query = HKSampleQuery(sampleType: heartRateType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, error in
@@ -294,12 +297,7 @@ final class HealthRepository: HealthRepositoryProtocol {
             return nil
         }
 
-        // Check authorization status
-        let authStatus = healthStore.authorizationStatus(for: restingHRType)
-        if authStatus == .notDetermined || authStatus == .sharingDenied {
-            print("[HealthRepository] Resting heart rate not authorized, returning nil")
-            return nil
-        }
+        print("[HealthRepository] Fetching resting heart rate data for date: \(date)")
 
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)
@@ -307,7 +305,7 @@ final class HealthRepository: HealthRepositoryProtocol {
             return nil
         }
 
-        let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: .strictStartDate)
+        let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: [])
 
         return await withCheckedContinuation { continuation in
             let query = HKSampleQuery(sampleType: restingHRType, predicate: predicate, limit: 1, sortDescriptors: nil) { _, samples, error in
@@ -342,12 +340,7 @@ final class HealthRepository: HealthRepositoryProtocol {
             return HRVData(date: formatDate(date), samples: [])
         }
 
-        // Check authorization status
-        let authStatus = healthStore.authorizationStatus(for: hrvType)
-        if authStatus == .notDetermined || authStatus == .sharingDenied {
-            print("[HealthRepository] HRV not authorized, returning empty")
-            return HRVData(date: formatDate(date), samples: [])
-        }
+        print("[HealthRepository] Fetching HRV data for date: \(date)")
 
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)
@@ -355,7 +348,7 @@ final class HealthRepository: HealthRepositoryProtocol {
             return HRVData(date: formatDate(date), samples: [])
         }
 
-        let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: .strictStartDate)
+        let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: [])
 
         return await withCheckedContinuation { continuation in
             let query = HKSampleQuery(sampleType: hrvType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, error in
@@ -433,12 +426,7 @@ final class HealthRepository: HealthRepositoryProtocol {
     private func fetchWorkouts(for date: Date) async -> [WorkoutData] {
         let workoutType = HKObjectType.workoutType()
 
-        // Check authorization status
-        let authStatus = healthStore.authorizationStatus(for: workoutType)
-        if authStatus == .notDetermined || authStatus == .sharingDenied {
-            print("[HealthRepository] Workouts not authorized, returning empty")
-            return []
-        }
+        print("[HealthRepository] Fetching workouts data for date: \(date)")
 
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)
@@ -446,7 +434,7 @@ final class HealthRepository: HealthRepositoryProtocol {
             return []
         }
 
-        let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: .strictStartDate)
+        let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: [])
 
         return await withCheckedContinuation { continuation in
             let query = HKSampleQuery(sampleType: workoutType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, error in
@@ -509,12 +497,7 @@ final class HealthRepository: HealthRepositoryProtocol {
             return BloodOxygenData(date: formatDate(date), samples: [])
         }
 
-        // Check authorization status
-        let authStatus = healthStore.authorizationStatus(for: oxygenType)
-        if authStatus == .notDetermined || authStatus == .sharingDenied {
-            print("[HealthRepository] Blood oxygen not authorized, returning empty")
-            return BloodOxygenData(date: formatDate(date), samples: [])
-        }
+        print("[HealthRepository] Fetching blood oxygen data for date: \(date)")
 
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)
@@ -522,7 +505,7 @@ final class HealthRepository: HealthRepositoryProtocol {
             return BloodOxygenData(date: formatDate(date), samples: [])
         }
 
-        let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: .strictStartDate)
+        let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: [])
 
         return await withCheckedContinuation { continuation in
             let query = HKSampleQuery(sampleType: oxygenType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, error in
@@ -564,12 +547,7 @@ final class HealthRepository: HealthRepositoryProtocol {
             return nil
         }
 
-        // Check authorization status
-        let authStatus = healthStore.authorizationStatus(for: weightType)
-        if authStatus == .notDetermined || authStatus == .sharingDenied {
-            print("[HealthRepository] Weight not authorized, returning nil")
-            return nil
-        }
+        print("[HealthRepository] Fetching weight data for date: \(date)")
 
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)
@@ -577,7 +555,7 @@ final class HealthRepository: HealthRepositoryProtocol {
             return nil
         }
 
-        let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: .strictStartDate)
+        let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: [])
 
         return await withCheckedContinuation { continuation in
             let query = HKSampleQuery(sampleType: weightType, predicate: predicate, limit: 1, sortDescriptors: nil) { _, samples, error in
@@ -618,12 +596,7 @@ final class HealthRepository: HealthRepositoryProtocol {
             return []
         }
 
-        // Check authorization status
-        let authStatus = healthStore.authorizationStatus(for: mindfulType)
-        if authStatus == .notDetermined || authStatus == .sharingDenied {
-            print("[HealthRepository] Mindfulness not authorized, returning empty")
-            return []
-        }
+        print("[HealthRepository] Fetching mindfulness data for date: \(date)")
 
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)
@@ -631,7 +604,7 @@ final class HealthRepository: HealthRepositoryProtocol {
             return []
         }
 
-        let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: .strictStartDate)
+        let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: [])
 
         return await withCheckedContinuation { continuation in
             let query = HKSampleQuery(sampleType: mindfulType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, error in

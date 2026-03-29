@@ -35,6 +35,8 @@
 		A1A1A1BA0000000000000001 /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2A2A2A2000000000000026 /* HomeViewModel.swift */; };
 		A1A1A1BB0000000000000001 /* TabBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2A2A2A2000000000000027 /* TabBarView.swift */; };
 		B65190032F77862200AEB8E7 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B65190022F77862200AEB8E7 /* Launch Screen.storyboard */; };
+		B65190062F78F15D00AEB8E7 /* HealthDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B65190042F78F15D00AEB8E7 /* HealthDetailView.swift */; };
+		B65190072F78F15D00AEB8E7 /* HealthDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B65190052F78F15D00AEB8E7 /* HealthDetailViewModel.swift */; };
 		C65190032F77862300AEB8E8 /* EncryptionConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = C65190022F77862300AEB8E8 /* EncryptionConfig.swift */; };
 /* End PBXBuildFile section */
 
@@ -69,6 +71,8 @@
 		A2A2A2A2000000000000027 /* TabBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarView.swift; sourceTree = "<group>"; };
 		B65190022F77862200AEB8E7 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 		B65190042F77862300AEB8E7 /* HealthSync.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HealthSync.entitlements; sourceTree = "<group>"; };
+		B65190042F78F15D00AEB8E7 /* HealthDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthDetailView.swift; sourceTree = "<group>"; };
+		B65190052F78F15D00AEB8E7 /* HealthDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthDetailViewModel.swift; sourceTree = "<group>"; };
 		C65190022F77862300AEB8E8 /* EncryptionConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncryptionConfig.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -139,6 +143,8 @@
 				A2A2A2A2000000000000025 /* HomeView.swift */,
 				A2A2A2A2000000000000026 /* HomeViewModel.swift */,
 				A2A2A2A2000000000000027 /* TabBarView.swift */,
+				B65190042F78F15D00AEB8E7 /* HealthDetailView.swift */,
+				B65190052F78F15D00AEB8E7 /* HealthDetailViewModel.swift */,
 			);
 			path = Main;
 			sourceTree = "<group>";
@@ -599,6 +605,8 @@
 			files = (
 				A1A1A1A1000000000000001 /* HealthSyncApp.swift in Sources */,
 				A1A1A1A2000000000000001 /* KeychainManager.swift in Sources */,
+				B65190062F78F15D00AEB8E7 /* HealthDetailView.swift in Sources */,
+				B65190072F78F15D00AEB8E7 /* HealthDetailViewModel.swift in Sources */,
 				A1A1A1A3000000000000001 /* AppContainer.swift in Sources */,
 				A1A1A1A4000000000000001 /* Colors.swift in Sources */,
 				A1A1A1A5000000000000001 /* Extensions.swift in Sources */,

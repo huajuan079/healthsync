@@ -66,7 +66,7 @@ struct StepData: HealthData, Codable {
     let distanceUnit: String?
 }
 
-struct WorkoutData: HealthData, Codable {
+struct WorkoutData: HealthData, Codable, Hashable {
     let date: String
     let startDate: Date
     let endDate: Date
@@ -76,7 +76,7 @@ struct WorkoutData: HealthData, Codable {
     let energy: Double?
     let source: String?
 
-    enum WorkoutType: String, Codable {
+    enum WorkoutType: String, Codable, Hashable {
         case running, walking, cycling, swimming, hiking, yoga, fitness, other
     }
 }
@@ -125,14 +125,14 @@ struct MedicationData: HealthData, Codable {
 
 // MARK: - Mindfulness Data
 
-struct MindfulnessData: HealthData, Codable {
+struct MindfulnessData: HealthData, Codable, Hashable {
     let date: String
     let startDate: Date
     let endDate: Date
     let duration: TimeInterval
     let type: MindfulType
 
-    enum MindfulType: String, Codable {
+    enum MindfulType: String, Codable, Hashable {
         case meditation
         case yoga
         case breathing

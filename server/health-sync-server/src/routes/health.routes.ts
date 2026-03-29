@@ -7,7 +7,7 @@ const router = Router();
 
 /**
  * POST /health/upload
- * Upload encrypted health data (requires authentication)
+ * Upload health data as plaintext JSON (requires authentication)
  */
 router.post('/upload', authenticate, healthController.upload.bind(healthController));
 
@@ -19,7 +19,7 @@ router.get('/status', authenticate, healthController.status.bind(healthControlle
 
 /**
  * GET /health/fetch
- * Fetch encrypted health data (legacy, for compatibility)
+ * Fetch health data (legacy, for compatibility)
  */
 router.get('/fetch', healthController.fetch.bind(healthController));
 
@@ -63,7 +63,7 @@ router.get('/admin/dates', requireApiKey, healthController.adminGetDates.bind(he
 
 /**
  * GET /health/admin/fetch-decrypted
- * Fetch and decrypt health data (returns plaintext)
+ * Fetch health data as plaintext JSON
  * For Mac Mini - authenticated by API Key
  */
 router.get('/admin/fetch-decrypted', requireApiKey, healthController.adminFetchDecrypted.bind(healthController));

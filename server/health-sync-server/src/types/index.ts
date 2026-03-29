@@ -37,7 +37,7 @@ export interface HealthDataBatch {
   date: string;
   batch_index: number;
   batch_total: number;
-  data: string; // base64 encrypted data
+  data: string; // plaintext JSON data
   checksum: string;
 }
 
@@ -61,8 +61,8 @@ export interface FetchDataRequest {
   endDate?: string;
 }
 
-// Decrypted Health Data Types (for Mac Mini)
-export interface DecryptedHealthData {
+// Health Data Response Types (for Mac Mini)
+export interface HealthData {
   date: string;
   user: string;
   sync_time: string;

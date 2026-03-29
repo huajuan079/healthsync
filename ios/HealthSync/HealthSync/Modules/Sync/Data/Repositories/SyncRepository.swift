@@ -1,7 +1,7 @@
 import Foundation
 
 protocol SyncRepositoryProtocol {
-    func uploadBatch(_ batch: HealthDataBatch) async throws -> UploadResponse
+    func uploadBatch(date: String, data: String) async throws -> UploadResponse
     func getSyncStatus() async throws -> SyncStatusResponse
 }
 
@@ -10,9 +10,11 @@ final class SyncRepository: SyncRepositoryProtocol {
     init(apiService: APIServiceProtocol) {
         self.apiService = apiService
     }
-    func uploadBatch(_ batch: HealthDataBatch) async throws -> UploadResponse {
-        print("[SyncRepository] uploadBatch called for date: \(batch.date)")
+
+    func uploadBatch(date: String, data: String) async throws -> UploadResponse {
+        print("[SyncRepository] uploadBatch called for date: \(date)")
         do {
+            let batch = HealthDataBatch(date: date, data: data)
             let response: UploadResponse = try await apiService.request(.healthUpload(data: batch))
             print("[SyncRepository] uploadBatch success, batchId: \(response.batchId)")
             return response
@@ -21,6 +23,7 @@ final class SyncRepository: SyncRepositoryProtocol {
             throw error
         }
     }
+
     func getSyncStatus() async throws -> SyncStatusResponse {
         print("[SyncRepository] getSyncStatus called")
         do {

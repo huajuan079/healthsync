@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from 'express';
 import { HealthService } from '../services/health.service';
 import { createLogger } from '../utils/logger';
 import { prisma } from '../models/prisma';
-import { decryptIOSEncryptedData } from '../config/encryption';
 
 const logger = createLogger('HealthController');
 const healthService = new HealthService();
@@ -313,27 +312,18 @@ export class HealthController {
         return;
       }
 
-      // Try to read and decrypt the stored file
+      // Try to read the stored plaintext file
       let filePreview = '';
-      let decryptedData = '';
       let fileExists = false;
-      let decryptError = '';
 
       try {
         const { StorageService } = await import('../services/storage.service.js');
         const storage = new StorageService();
-        const data = await storage.readBatch(upload.user.username, upload.date, upload.batchIndex);
+        const data = await storage.readPlaintextData(upload.user.username, upload.date);
         fileExists = true;
 
-        // Show first 200 chars of encrypted data
+        // Show first 200 chars of plaintext data
         filePreview = data.substring(0, 200) + (data.length > 200 ? '...' : '');
-
-        // Try to decrypt
-        try {
-          decryptedData = decryptIOSEncryptedData(data, upload.user.username);
-        } catch (e) {
-          decryptError = (e as Error).message;
-        }
       } catch (e) {
         filePreview = '文件读取失败或已被归档删除';
       }
@@ -505,42 +495,15 @@ export class HealthController {
     </div>
 
     <div class="detail-card">
-      <h3>🔐 加密数据预览</h3>
+      <h3>📄 健康数据预览</h3>
       <div class="info-box">
-        <h3>ℹ️ 关于数据加密</h3>
-        <p>健康数据使用 AES-256-GCM 加密存储。</p>
+        <h3>ℹ️ 关于数据存储</h3>
+        <p>健康数据以明文 JSON 格式存储。</p>
       </div>
       <div class="preview-box">
         ${fileExists ? filePreview : '文件不存在或已被归档删除'}
       </div>
     </div>
-
-    ${decryptedData ? `
-    <div class="detail-card">
-      <h3>🔓 解密后数据</h3>
-      <div class="success-box">
-        <h3>✅ 解密成功</h3>
-        <p>以下是解密后的健康数据 JSON：</p>
-      </div>
-      <div class="decrypted-box">
-        <pre>${JSON.stringify(JSON.parse(decryptedData), null, 2)}</pre>
-      </div>
-    </div>
-    ` : decryptError ? `
-    <div class="detail-card">
-      <h3>🔓 解密数据</h3>
-      <div class="error-box">
-        <h3>❌ 解密失败</h3>
-        <p>可能原因：</p>
-        <ul style="margin-left: 20px; margin-top: 10px;">
-          <li>服务器未配置该用户的加密密钥</li>
-          <li>密钥不匹配（iOS 和服务器密钥不同）</li>
-          <li>数据损坏</li>
-        </ul>
-        <p style="margin-top: 10px;"><strong>错误：</strong>${decryptError}</p>
-      </div>
-    </div>
-    ` : ''}
   </div>
 </body>
 </html>`;
@@ -554,8 +517,8 @@ export class HealthController {
 
   /**
    * GET /health/admin/fetch-decrypted
-   * Fetch and decrypt health data for Mac Mini (authenticated by API Key)
-   * Returns decrypted plaintext JSON
+   * Fetch health data for Mac Mini (authenticated by API Key)
+   * Returns plaintext JSON
    */
   async adminFetchDecrypted(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
@@ -566,7 +529,7 @@ export class HealthController {
         return;
       }
 
-      // Get encrypted data from storage
+      // Get plaintext data from storage
       const { StorageService } = await import('../services/storage.service.js');
       const storage = new StorageService();
 
@@ -584,70 +547,35 @@ export class HealthController {
 
       for (const date of dates) {
         try {
-          // Get all batches for this date
-          const batches = await storage.getBatches(username, date);
+          // Read plaintext data directly
+          const plaintextData = await storage.readPlaintextData(username, date);
+          const data = JSON.parse(plaintextData);
 
-          // Decrypt and merge all batches
-          const decryptedData: any = {
+          // Map iOS format to internal format
+          const mappedData: any = {
             date,
             user: username,
             sync_time: new Date().toISOString(),
-            sleep: [],
-            heart_rate: [],
-            resting_heart_rate: null,
-            hrv: [],
-            steps: null,
-            workouts: [],
-            blood_oxygen: [],
-            menstrual: [],
-            weight: null,
-            medications: [],
-            mindfulness: [],
+            sleep: data.sleep || [],
+            heart_rate: data.heartRate || [],
+            resting_heart_rate: data.restingHeartRate || null,
+            hrv: data.hrv || [],
+            steps: data.steps || null,
+            workouts: data.workouts || [],
+            blood_oxygen: data.bloodOxygen || [],
+            menstrual: data.menstrual || [],
+            weight: data.weight || null,
+            medications: data.medications || [],
+            mindfulness: data.mindfulness || [],
           };
 
-          for (const batch of batches) {
-            try {
-              // Decrypt the batch data
-              const decrypted = decryptIOSEncryptedData(batch.data, username);
-              const data = JSON.parse(decrypted);
-
-              // Merge each data type
-              const typeMap: Record<string, string> = {
-                sleep: 'sleep',
-                heartRate: 'heart_rate',
-                restingHeartRate: 'resting_heart_rate',
-                hrv: 'hrv',
-                steps: 'steps',
-                workouts: 'workouts',
-                bloodOxygen: 'blood_oxygen',
-                menstrual: 'menstrual',
-                weight: 'weight',
-                medications: 'medications',
-                mindfulness: 'mindfulness',
-              };
-
-              for (const [iosKey, internalKey] of Object.entries(typeMap)) {
-                const value = (data as any)[iosKey];
-                if (value !== undefined && value !== null) {
-                  if (Array.isArray(value)) {
-                    decryptedData[internalKey] = decryptedData[internalKey].concat(value);
-                  } else if (internalKey === 'resting_heart_rate' || internalKey === 'weight' || internalKey === 'steps') {
-                    decryptedData[internalKey] = value;
-                  }
-                }
-              }
-            } catch (decryptError) {
-              logger.error(`Failed to decrypt batch ${batch.index} for ${username} on ${date}:`, decryptError);
-            }
-          }
-
-          result.push(decryptedData);
+          result.push(mappedData);
         } catch (error) {
           logger.error(`Failed to process data for ${username} on ${date}:`, error);
         }
       }
 
-      logger.info(`Admin fetch decrypted: ${username}, ${result.length} days`);
+      logger.info(`Admin fetch plaintext: ${username}, ${result.length} days`);
 
       res.json({
         success: true,
@@ -656,7 +584,7 @@ export class HealthController {
         data: result,
       });
     } catch (error) {
-      logger.error('Admin fetch decrypted error', { error });
+      logger.error('Admin fetch plaintext error', { error });
       next(error);
     }
   }

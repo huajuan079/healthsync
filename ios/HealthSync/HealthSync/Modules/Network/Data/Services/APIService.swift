@@ -289,18 +289,7 @@ struct User: Codable {
 
 struct HealthDataBatch: Codable {
     let date: String
-    let batchIndex: Int
-    let batchTotal: Int
     let data: String
-    let checksum: String
-
-    enum CodingKeys: String, CodingKey {
-        case date
-        case batchIndex = "batch_index"
-        case batchTotal = "batch_total"
-        case data
-        case checksum
-    }
 }
 
 struct UploadResponse: Codable {

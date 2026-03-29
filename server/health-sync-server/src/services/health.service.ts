@@ -1,19 +1,15 @@
 import { z } from 'zod';
 import { prisma } from '../models/prisma';
 import { StorageService } from './storage.service';
-import { verifyChecksum } from '../config/encryption';
-import type { HealthDataBatch, SyncStatusResponse } from '../types';
+import type { SyncStatusResponse } from '../types';
 import { createLogger } from '../utils/logger';
 
 const logger = createLogger('HealthService');
 
-// Validation schemas
+// Validation schema for plaintext upload
 const uploadSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  batch_index: z.number().int().min(0),
-  batch_total: z.number().int().min(1),
-  data: z.string().min(1),
-  checksum: z.string().length(64),
+  data: z.string().min(1), // Plaintext JSON
 });
 
 export class HealthService {
@@ -24,58 +20,60 @@ export class HealthService {
   }
 
   /**
-   * Upload encrypted health data batch
+   * Upload plaintext health data
+   * Data is stored as-is without encryption
    */
   async uploadBatch(
     username: string,
     userId: string,
-    batch: HealthDataBatch
+    payload: any
   ): Promise<{ batchId: string; message: string }> {
     // Validate input
-    const validated = uploadSchema.parse(batch);
+    const validated = uploadSchema.parse(payload);
 
-    // Verify checksum
-    const expectedChecksum = verifyChecksum(validated.data, validated.checksum);
-    if (!expectedChecksum) {
-      throw new Error('Checksum verification failed');
+    // Parse the JSON data to estimate record count
+    let recordCount = 1;
+    try {
+      const jsonData = JSON.parse(validated.data);
+      // Count all arrays and single values
+      recordCount = Object.values(jsonData).filter((v: any) => {
+        if (Array.isArray(v)) return v.length > 0;
+        return v !== null && v !== undefined;
+      }).length;
+    } catch {
+      // If JSON parse fails, use size estimate
+      recordCount = Math.max(1, Math.floor(validated.data.length / 500));
     }
 
-    // Check if batch already exists
-    const existing = await prisma.upload.findUnique({
+    // Check if we already have data for this date
+    const existing = await prisma.upload.findFirst({
       where: {
-        userId_date_batchIndex: {
-          userId,
-          date: validated.date,
-          batchIndex: validated.batch_index,
-        },
+        userId,
+        date: validated.date,
       },
     });
 
     if (existing) {
-      // Update existing batch
+      // Update existing record
       await prisma.upload.update({
         where: { id: existing.id },
         data: {
-          recordCount: this.estimateRecordCount(validated.data),
-          checksum: validated.checksum,
+          recordCount,
           fileSize: validated.data.length,
           status: 'completed',
           errorMessage: null,
         },
       });
 
-      // Store the encrypted data
-      await this.storage.storeBatch(
+      // Store the plaintext data
+      await this.storage.storePlaintextData(
         username,
         validated.date,
-        validated.batch_index,
-        validated.data,
-        validated.checksum
+        validated.data
       );
 
-      logger.info(`Updated batch ${validated.batch_index} for ${username} on ${validated.date}`);
-
-      return { batchId: existing.id, message: 'Batch updated successfully' };
+      logger.info(`Updated health data for ${username} on ${validated.date}`);
+      return { batchId: existing.id, message: 'Data updated successfully' };
     }
 
     // Create new upload record
@@ -83,30 +81,28 @@ export class HealthService {
       data: {
         userId,
         date: validated.date,
-        batchIndex: validated.batch_index,
-        batchTotal: validated.batch_total,
-        recordCount: this.estimateRecordCount(validated.data),
-        checksum: validated.checksum,
+        batchIndex: 0,
+        batchTotal: 1,
+        recordCount,
+        checksum: '', // No checksum for plaintext
         fileSize: validated.data.length,
         status: 'completed',
       },
     });
 
-    // Store the encrypted data
-    await this.storage.storeBatch(
+    // Store the plaintext data
+    await this.storage.storePlaintextData(
       username,
       validated.date,
-      validated.batch_index,
-      validated.data,
-      validated.checksum
+      validated.data
     );
 
     // Update sync status
     await this.updateSyncStatus(userId, validated.date);
 
-    logger.info(`Uploaded batch ${validated.batch_index}/${validated.batch_total} for ${username} on ${validated.date}`);
+    logger.info(`Uploaded health data for ${username} on ${validated.date}`);
 
-    return { batchId: upload.id, message: 'Batch uploaded successfully' };
+    return { batchId: upload.id, message: 'Data uploaded successfully' };
   }
 
   /**
@@ -142,31 +138,28 @@ export class HealthService {
   }
 
   /**
-   * Fetch data for Mac Mini (returns encrypted batches)
+   * Fetch data for Mac Mini (returns plaintext)
    */
   async fetchData(
     username: string,
     startDate?: string,
     endDate?: string
-  ): Promise<Array<{ date: string; batches: Array<{ index: number; data: string; checksum: string }> }>> {
+  ): Promise<Array<{ date: string; data: string }>> {
     let dates = await this.storage.getAvailableDates(username);
 
     // Filter by date range if provided
     if (startDate) {
-      dates = dates.filter(d => d >= startDate);
+      dates = dates.filter((d) => d >= startDate);
     }
     if (endDate) {
-      dates = dates.filter(d => d <= endDate);
+      dates = dates.filter((d) => d <= endDate);
     }
 
     const result = [];
 
     for (const date of dates) {
-      const batches = await this.storage.getBatches(username, date);
-      result.push({
-        date,
-        batches: batches.sort((a, b) => a.index - b.index),
-      });
+      const data = await this.storage.readPlaintextData(username, date);
+      result.push({ date, data });
     }
 
     // Update last fetch time
@@ -212,7 +205,7 @@ export class HealthService {
   }
 
   /**
-   * Estimate record count from encrypted data size (rough estimate)
+   * Estimate record count from data size
    */
   private estimateRecordCount(data: string): number {
     // Base64 encoded JSON is approximately 33% larger than original

@@ -13,11 +13,6 @@ export const config = {
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
   },
 
-  encryption: {
-    zhugong: process.env.ENCRYPTION_KEY_ZHUGONG || '',
-    dage: process.env.ENCRYPTION_KEY_DAGE || '',
-  },
-
   dataRetention: {
     days: parseInt(process.env.DATA_RETENTION_DAYS || '7', 10),
   },

@@ -1,5 +1,4 @@
 import Foundation
-import CryptoKit
 
 // MARK: - Sync Health Data Use Case Protocol
 
@@ -41,38 +40,12 @@ struct SyncProgress {
     }
 }
 
-// MARK: - Sync Error
-
-enum SyncError: LocalizedError {
-    case encryptionFailed
-
-    var errorDescription: String? {
-        switch self {
-        case .encryptionFailed:
-            return "加密失败"
-        }
-    }
-}
-
 // MARK: - Sync Health Data Use Case
 
 final class SyncHealthDataUseCase: SyncHealthDataUseCaseProtocol {
     private let healthRepository: HealthRepositoryProtocol
     private let syncRepository: SyncRepositoryProtocol
-    private let encryptionService: EncryptionServiceProtocol
     private let getCurrentUsername: () -> String
-
-    private var encryptionKey: SymmetricKey {
-        let username = getCurrentUsername()
-        if let key = EncryptionConfig.getKey(for: username) {
-            return key
-        }
-        // Fallback to a default key (for development only)
-        print("[SyncHealthDataUseCase] Warning: Using fallback key for user: \(username)")
-        return AESEncryptionService.generateKey()
-    }
-
-    private let batchSize = 500
 
     // Progress reporting
     var onProgress: ((SyncProgress) -> Void)?
@@ -80,12 +53,10 @@ final class SyncHealthDataUseCase: SyncHealthDataUseCaseProtocol {
     init(
         healthRepository: HealthRepositoryProtocol,
         syncRepository: SyncRepositoryProtocol,
-        encryptionService: EncryptionServiceProtocol,
         getCurrentUsername: @escaping () -> String = { "zhugong" }
     ) {
         self.healthRepository = healthRepository
         self.syncRepository = syncRepository
-        self.encryptionService = encryptionService
         self.getCurrentUsername = getCurrentUsername
     }
 
@@ -100,35 +71,18 @@ final class SyncHealthDataUseCase: SyncHealthDataUseCaseProtocol {
         let healthData = await healthRepository.fetchAllData(for: date)
         print("[SyncHealthDataUseCase] Health data fetched, has steps: \(healthData.steps != nil)")
 
-        // Serialize and encrypt
+        // Serialize to JSON
         print("[SyncHealthDataUseCase] Encoding to JSON...")
         let jsonData = try JSONEncoder().encode(healthData)
         let jsonString = String(data: jsonData, encoding: .utf8)!
         print("[SyncHealthDataUseCase] JSON encoded, size: \(jsonString.count) bytes")
 
-        // Create batch (for simplicity, single batch)
-        print("[SyncHealthDataUseCase] Encrypting data...")
-        let encrypted = try encryptData(jsonString)
-        print("[SyncHealthDataUseCase] Data encrypted, encrypted size: \(encrypted.count) bytes")
-
-        // Calculate checksum on encrypted data (must match server verification)
-        guard let encryptedData = encrypted.data(using: .utf8) else {
-            throw SyncError.encryptionFailed
-        }
-        let checksum = encryptionService.calculateChecksum(encryptedData)
-        print("[SyncHealthDataUseCase] Checksum calculated on encrypted data: \(checksum)")
-
-        let batch = HealthDataBatch(
-            date: dateString,
-            batchIndex: 0,
-            batchTotal: 1,
-            data: encrypted,
-            checksum: checksum
-        )
-
-        // Upload batch
+        // Upload plaintext data (no encryption)
         print("[SyncHealthDataUseCase] Uploading batch...")
-        let response = try await syncRepository.uploadBatch(batch)
+        let response = try await syncRepository.uploadBatch(
+            date: dateString,
+            data: jsonString
+        )
         print("[SyncHealthDataUseCase] Upload complete, batchId: \(response.batchId), message: \(response.message)")
 
         // Report progress
@@ -140,7 +94,7 @@ final class SyncHealthDataUseCase: SyncHealthDataUseCaseProtocol {
             currentDataType: dateString
         ))
 
-        let totalRecords = estimateRecordCount(encrypted)
+        let totalRecords = estimateRecordCount(jsonString)
         print("[SyncHealthDataUseCase] syncData completed, totalRecords: \(totalRecords)")
 
         return SyncResult(
@@ -205,15 +159,9 @@ final class SyncHealthDataUseCase: SyncHealthDataUseCaseProtocol {
 
     // MARK: - Private Methods
 
-    private func encryptData(_ jsonString: String) throws -> String {
-        let data = jsonString.data(using: .utf8)!
-        let encrypted = try encryptionService.encrypt(data, using: encryptionKey)
-        return encrypted.toBase64()
-    }
-
-    private func estimateRecordCount(_ encryptedData: String) -> Int {
-        // Rough estimate based on encrypted size
-        let size = encryptedData.data(using: .utf8)!.count
-        return max(1, size / 500)
+    private func estimateRecordCount(_ jsonString: String) -> Int {
+        // Rough estimate based on JSON size
+        let size = jsonString.count
+        return max(1, size / 300)
     }
 }

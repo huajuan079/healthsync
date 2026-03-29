@@ -7,7 +7,7 @@ import { createLogger } from '../utils/logger';
 const logger = createLogger('StorageService');
 
 /**
- * Service for managing encrypted health data file storage
+ * Service for managing health data file storage (plaintext)
  */
 export class StorageService {
   private basePath: string;
@@ -44,58 +44,34 @@ export class StorageService {
   }
 
   /**
-   * Store encrypted data batch
+   * Store plaintext health data directly
    */
-  async storeBatch(
+  async storePlaintextData(
     username: string,
     date: string,
-    batchIndex: number,
-    encryptedData: string,
-    checksum: string
+    plaintextData: string
   ): Promise<void> {
     await this.ensureUserDir(username);
 
     const filePath = this.getFilePath(username, date);
 
-    // Read existing batches or create new
-    let batches: Record<number, { data: string; checksum: string }> = {};
+    // Write plaintext JSON directly (no encryption, no batching)
+    await fs.writeFile(filePath, plaintextData, 'utf-8');
 
-    try {
-      const existing = await fs.readFile(filePath, 'utf-8');
-      batches = JSON.parse(existing);
-    } catch {
-      // File doesn't exist yet, create new
-    }
-
-    // Store the batch
-    batches[batchIndex] = {
-      data: encryptedData,
-      checksum,
-    };
-
-    // Write back
-    await fs.writeFile(filePath, JSON.stringify(batches, null, 2));
-
-    logger.debug(`Stored batch ${batchIndex} for ${username} on ${date}`);
+    logger.debug(`Stored plaintext data for ${username} on ${date}`);
   }
 
   /**
-   * Retrieve all batches for a specific date
+   * Read plaintext health data
    */
-  async getBatches(username: string, date: string): Promise<Array<{ index: number; data: string; checksum: string }>> {
+  async readPlaintextData(username: string, date: string): Promise<string> {
     const filePath = this.getFilePath(username, date);
 
     try {
       const content = await fs.readFile(filePath, 'utf-8');
-      const batches: Record<number, { data: string; checksum: string }> = JSON.parse(content);
-
-      return Object.entries(batches).map(([index, batch]) => ({
-        index: parseInt(index, 10),
-        data: batch.data,
-        checksum: batch.checksum,
-      }));
+      return content;
     } catch {
-      return [];
+      throw new Error(`Data not found for ${username} on ${date}`);
     }
   }
 
@@ -108,27 +84,13 @@ export class StorageService {
     try {
       const files = await fs.readdir(userPath);
       return files
-        .filter(f => f.endsWith('.json'))
-        .map(f => f.replace('.json', ''))
+        .filter((f) => f.endsWith('.json'))
+        .map((f) => f.replace('.json', ''))
         .sort()
         .reverse();
     } catch {
       return [];
     }
-  }
-
-  /**
-   * Read a specific batch (returns raw encrypted data)
-   */
-  async readBatch(username: string, date: string, batchIndex: number): Promise<string> {
-    const batches = await this.getBatches(username, date);
-    const batch = batches.find(b => b.index === batchIndex);
-
-    if (!batch) {
-      throw new Error(`Batch ${batchIndex} not found for ${username} on ${date}`);
-    }
-
-    return batch.data;
   }
 
   /**

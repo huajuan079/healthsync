@@ -12,7 +12,6 @@ final class AppContainer: ObservableObject {
         authTokenProvider: self
     )
 
-    lazy var encryptionService: EncryptionServiceProtocol = AESEncryptionService()
     lazy var keychainManager: KeychainManagerProtocol = KeychainManager()
 
     lazy var authRepository: AuthRepositoryProtocol = AuthRepository(
@@ -36,7 +35,6 @@ final class AppContainer: ObservableObject {
     lazy var syncHealthDataUseCase = SyncHealthDataUseCase(
         healthRepository: healthRepository,
         syncRepository: syncRepository,
-        encryptionService: encryptionService,
         getCurrentUsername: {
             // Get username from UserDefaults
             UserDefaultsManager.shared.username ?? "zhugong"

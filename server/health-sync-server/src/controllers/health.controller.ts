@@ -102,7 +102,7 @@ export class HealthController {
         return;
       }
 
-      const { StorageService } = await import('../services/storage.service');
+      const { StorageService } = await import('../services/storage.service.js');
       const storage = new StorageService();
 
       await storage.cleanupAllUsersData();
@@ -240,7 +240,7 @@ export class HealthController {
         <div class="stat-label">用户总数</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value">${users.reduce((sum, u) => sum + u.uploads.length, 0)}</div>
+        <div class="stat-value">${users.reduce((sum: number, u) => sum + u.uploads.length, 0)}</div>
         <div class="stat-label">上传记录</div>
       </div>
     </div>
@@ -304,9 +304,9 @@ export class HealthController {
       const { id } = req.params;
 
       const upload = await prisma.upload.findUnique({
-        where: { id },
+        where: { id: id as string },
         include: { user: true },
-      });
+      }) as any;
 
       if (!upload) {
         res.status(404).send('Upload record not found');
@@ -320,7 +320,7 @@ export class HealthController {
       let decryptError = '';
 
       try {
-        const { StorageService } = await import('../services/storage.service');
+        const { StorageService } = await import('../services/storage.service.js');
         const storage = new StorageService();
         const data = await storage.readBatch(upload.user.username, upload.date, upload.batchIndex);
         fileExists = true;
@@ -567,7 +567,7 @@ export class HealthController {
       }
 
       // Get encrypted data from storage
-      const { StorageService } = await import('../services/storage.service');
+      const { StorageService } = await import('../services/storage.service.js');
       const storage = new StorageService();
 
       let dates = await storage.getAvailableDates(username);
@@ -674,7 +674,7 @@ export class HealthController {
 
       res.json({
         success: true,
-        users: users.map((u) => u.username),
+        users: users.map((u: { username: string }) => u.username),
       });
     } catch (error) {
       logger.error('Admin get users error', { error });
@@ -695,7 +695,7 @@ export class HealthController {
         return;
       }
 
-      const { StorageService } = await import('../services/storage.service');
+      const { StorageService } = await import('../services/storage.service.js');
       const storage = new StorageService();
 
       const dates = await storage.getAvailableDates(username);

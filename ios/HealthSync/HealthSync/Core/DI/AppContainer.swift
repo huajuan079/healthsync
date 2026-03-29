@@ -74,7 +74,7 @@ enum Config {
         if let cached = cachedServerURL {
             return cached
         }
-        let value = UserDefaults.standard.string(forKey: "serverURL") ?? "http://192.168.18.176:3000"
+        let value = UserDefaults.standard.string(forKey: "serverURL") ?? "https://markmager.cc/healthsync"
         cachedServerURL = value
         return value
     }

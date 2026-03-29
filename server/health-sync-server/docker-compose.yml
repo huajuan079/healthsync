@@ -1,0 +1,22 @@
+services:
+  health-sync-server:
+    build: .
+    container_name: health-sync-server
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - health-sync-data:/app/data
+      - health-sync-storage:/app/storage
+    networks:
+      - markmager-network
+    expose:
+      - "3000"
+
+volumes:
+  health-sync-data:
+  health-sync-storage:
+
+networks:
+  markmager-network:
+    external: true
+    name: markmager-web_markmager-network

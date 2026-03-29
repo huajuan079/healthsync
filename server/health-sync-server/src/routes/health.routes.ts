@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { healthController } from '../controllers/health.controller';
 import { authenticate } from '../middleware/auth.middleware';
+import { requireApiKey } from '../middleware/apikey.middleware';
 
 const router = Router();
 
@@ -18,7 +19,7 @@ router.get('/status', authenticate, healthController.status.bind(healthControlle
 
 /**
  * GET /health/fetch
- * Fetch health data (for Mac Mini - requires admin or special auth)
+ * Fetch encrypted health data (legacy, for compatibility)
  */
 router.get('/fetch', healthController.fetch.bind(healthController));
 
@@ -45,5 +46,26 @@ router.get('/web/uploads', healthController.viewUploads.bind(healthController));
  * Web interface to view single upload detail
  */
 router.get('/web/upload/:id', healthController.viewUploadDetail.bind(healthController));
+
+// ===== Admin API for Mac Mini (authenticated by API Key) =====
+
+/**
+ * GET /health/admin/users
+ * Get list of available users
+ */
+router.get('/admin/users', requireApiKey, healthController.adminGetUsers.bind(healthController));
+
+/**
+ * GET /health/admin/dates
+ * Get available data dates for a user
+ */
+router.get('/admin/dates', requireApiKey, healthController.adminGetDates.bind(healthController));
+
+/**
+ * GET /health/admin/fetch-decrypted
+ * Fetch and decrypt health data (returns plaintext)
+ * For Mac Mini - authenticated by API Key
+ */
+router.get('/admin/fetch-decrypted', requireApiKey, healthController.adminFetchDecrypted.bind(healthController));
 
 export { router as healthRoutes };

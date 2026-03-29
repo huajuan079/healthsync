@@ -8,18 +8,19 @@ export interface HealthData {
   sync_time: string;
   sleep: any[];
   heart_rate: any[];
+  resting_heart_rate: any;
   hrv: any[];
-  steps: any[];
+  steps: any;
   workouts: any[];
   blood_oxygen: any[];
   menstrual: any[];
-  weight: any[];
+  weight: any;
   medications: any[];
   mindfulness: any[];
 }
 
 /**
- * Save decrypted health data to local JSON file
+ * Save health data to local JSON file (already decrypted)
  */
 export async function saveHealthData(
   username: string,
@@ -31,8 +32,6 @@ export async function saveHealthData(
 
   const filePath = path.join(userDir, `${date}.json`);
   await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf-8');
-
-  console.log(`Saved health data for ${username} on ${date}`);
 }
 
 /**
@@ -61,8 +60,8 @@ export async function getAvailableDates(username: string): Promise<string[]> {
   try {
     const files = await fs.readdir(userDir);
     return files
-      .filter(f => f.endsWith('.json'))
-      .map(f => f.replace('.json', ''))
+      .filter((f) => f.endsWith('.json'))
+      .map((f) => f.replace('.json', ''))
       .sort()
       .reverse();
   } catch {

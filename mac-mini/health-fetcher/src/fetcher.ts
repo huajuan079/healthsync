@@ -1,11 +1,15 @@
 import axios, { AxiosInstance } from 'axios';
-import { config, ensureWorkspace, loadKeysFromFile } from './config';
-import { decryptAndMergeBatches } from './decryptor';
+import { config, ensureWorkspace } from './config';
 import { saveHealthData, getAvailableDates, getDataSummary } from './storage';
 
+/**
+ * Simplified HealthFetcher for Mac Mini
+ * - Uses API Key for authentication (no user login needed)
+ * - Server returns decrypted plaintext data
+ * - No encryption keys needed on Mac Mini
+ */
 class HealthFetcher {
   private client: AxiosInstance;
-  private accessToken: string | null = null;
 
   constructor() {
     this.client = axios.create({
@@ -13,51 +17,57 @@ class HealthFetcher {
       timeout: 30000,
     });
 
-    // Add auth interceptor
-    this.client.interceptors.request.use((config) => {
-      if (this.accessToken) {
-        config.headers.Authorization = `Bearer ${this.accessToken}`;
-      }
-      return config;
+    // Add API Key header
+    this.client.interceptors.request.use((axiosConfig) => {
+      axiosConfig.headers['X-API-Key'] = config.server.apiKey;
+      return axiosConfig;
     });
   }
 
   /**
-   * Login and get access token
+   * Get list of available users
    */
-  async login(): Promise<void> {
+  async getUsers(): Promise<string[]> {
     try {
-      const response = await this.client.post('/api/auth/login', {
-        username: config.server.adminUsername,
-        password: config.server.adminPassword,
-      });
-
-      this.accessToken = response.data.accessToken;
-      console.log('Logged in successfully');
+      const response = await this.client.get('/api/health/admin/users');
+      return response.data.users;
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error('Failed to get users:', error);
       throw error;
     }
   }
 
   /**
-   * Fetch data for a user
+   * Get available data dates for a user
    */
-  async fetchUserData(
+  async getDates(username: string): Promise<string[]> {
+    try {
+      const response = await this.client.get('/api/health/admin/dates', {
+        params: { username },
+      });
+      return response.data.dates;
+    } catch (error) {
+      console.error(`Failed to get dates for ${username}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Fetch decrypted data for a user
+   */
+  async fetchDecryptedData(
     username: string,
     startDate?: string,
     endDate?: string
   ): Promise<any[]> {
-    if (!this.accessToken) {
-      await this.login();
-    }
-
     try {
       const params: any = { username };
       if (startDate) params.startDate = startDate;
       if (endDate) params.endDate = endDate;
 
-      const response = await this.client.get('/api/health/fetch', { params });
+      const response = await this.client.get('/api/health/admin/fetch-decrypted', {
+        params,
+      });
 
       return response.data.data;
     } catch (error) {
@@ -71,32 +81,21 @@ class HealthFetcher {
    */
   async processAndStore(username: string, fetchedData: any[]): Promise<void> {
     for (const dayData of fetchedData) {
-      const { date, batches } = dayData;
+      const { date } = dayData;
 
       // Check if we already have this date
       const existing = await getAvailableDates(username);
       if (existing.includes(date)) {
-        console.log(`Skipping ${username} data for ${date} (already exists)`);
+        console.log(`  Skipping ${date} (already exists)`);
         continue;
       }
 
       try {
-        // Decrypt and merge batches
-        const decrypted = decryptAndMergeBatches(batches, username);
-
-        // Create health data object
-        const healthData = {
-          date,
-          user: username,
-          sync_time: new Date().toISOString(),
-          ...decrypted,
-        };
-
-        // Save to local storage
-        await saveHealthData(username, date, healthData);
-        console.log(`✓ Stored ${username} data for ${date} (${batches.length} batches)`);
+        // Save to local storage (data is already decrypted)
+        await saveHealthData(username, date, dayData);
+        console.log(`  ✓ Stored ${date}`);
       } catch (error) {
-        console.error(`✗ Failed to process ${username} data for ${date}:`, error);
+        console.error(`  ✗ Failed to store ${date}:`, error);
       }
     }
   }
@@ -106,27 +105,25 @@ class HealthFetcher {
    */
   async fetchAll(): Promise<void> {
     ensureWorkspace();
-    loadKeysFromFile();
 
-    await this.login();
+    console.log('Fetching available users...');
+    const users = await this.getUsers();
+    console.log(`Found users: ${users.join(', ')}\n`);
 
-    for (const username of config.users) {
-      console.log(`\nFetching data for ${username}...`);
+    for (const username of users) {
+      console.log(`Fetching data for ${username}...`);
 
       try {
-        const data = await this.fetchUserData(username);
-        console.log(`Fetched ${data.length} days of data`);
+        const data = await this.fetchDecryptedData(username);
+        console.log(`  Fetched ${data.length} days of data`);
 
         await this.processAndStore(username, data);
 
         // Show summary
         const summary = await getDataSummary(username);
-        console.log(`Summary for ${username}:`);
-        console.log(`  Total days: ${summary.totalDays}`);
-        console.log(`  Date range: ${summary.oldestDate || 'N/A'} to ${summary.newestDate || 'N/A'}`);
-        console.log(`  Total size: ${(summary.totalSize / 1024).toFixed(2)} KB`);
+        console.log(`  Summary: ${summary.totalDays} days, ${(summary.totalSize / 1024).toFixed(2)} KB`);
       } catch (error) {
-        console.error(`Failed to fetch data for ${username}:`, error);
+        console.error(`  Failed to fetch data for ${username}:`, error);
       }
     }
   }
@@ -135,20 +132,49 @@ class HealthFetcher {
    * Fetch today's data only
    */
   async fetchToday(): Promise<void> {
-    const today = new Date().toISOString().split('T')[0];
-
     ensureWorkspace();
-    loadKeysFromFile();
-    await this.login();
 
-    for (const username of config.users) {
-      console.log(`\nFetching today's data for ${username}...`);
+    const today = new Date().toISOString().split('T')[0];
+    console.log(`Fetching today's data (${today})...\n`);
+
+    const users = await this.getUsers();
+
+    for (const username of users) {
+      console.log(`Fetching ${username}...`);
 
       try {
-        const data = await this.fetchUserData(username, today, today);
+        const data = await this.fetchDecryptedData(username, today, today);
         await this.processAndStore(username, data);
       } catch (error) {
-        console.error(`Failed to fetch today's data for ${username}:`, error);
+        console.error(`  Failed:`, error);
+      }
+    }
+  }
+
+  /**
+   * Fetch recent data (last N days)
+   */
+  async fetchRecent(days: number = 7): Promise<void> {
+    ensureWorkspace();
+
+    const endDate = new Date().toISOString().split('T')[0];
+    const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split('T')[0];
+
+    console.log(`Fetching data from ${startDate} to ${endDate}...\n`);
+
+    const users = await this.getUsers();
+
+    for (const username of users) {
+      console.log(`Fetching ${username}...`);
+
+      try {
+        const data = await this.fetchDecryptedData(username, startDate, endDate);
+        console.log(`  Fetched ${data.length} days`);
+        await this.processAndStore(username, data);
+      } catch (error) {
+        console.error(`  Failed:`, error);
       }
     }
   }
@@ -164,16 +190,18 @@ async function main(): Promise<void> {
 
   switch (mode) {
     case 'today':
-      console.log('Fetching today\'s data...');
       await fetcher.fetchToday();
       break;
+    case 'recent':
+      const days = parseInt(process.argv[3] || '7', 10);
+      await fetcher.fetchRecent(days);
+      break;
     case 'all':
-      console.log('Fetching all available data...');
       await fetcher.fetchAll();
       break;
     default:
       console.log(`Unknown mode: ${mode}`);
-      console.log('Usage: npm start [today|all]');
+      console.log('Usage: npm start [today|recent|all] [days]');
       process.exit(1);
   }
 

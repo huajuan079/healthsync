@@ -551,6 +551,165 @@ export class HealthController {
       res.status(500).send('Error loading upload detail');
     }
   }
+
+  /**
+   * GET /health/admin/fetch-decrypted
+   * Fetch and decrypt health data for Mac Mini (authenticated by API Key)
+   * Returns decrypted plaintext JSON
+   */
+  async adminFetchDecrypted(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { username, startDate, endDate } = req.query;
+
+      if (!username || typeof username !== 'string') {
+        res.status(400).json({ error: 'Username is required' });
+        return;
+      }
+
+      // Get encrypted data from storage
+      const { StorageService } = await import('../services/storage.service');
+      const storage = new StorageService();
+
+      let dates = await storage.getAvailableDates(username);
+
+      // Filter by date range if provided
+      if (startDate) {
+        dates = dates.filter((d: string) => d >= (startDate as string));
+      }
+      if (endDate) {
+        dates = dates.filter((d: string) => d <= (endDate as string));
+      }
+
+      const result = [];
+
+      for (const date of dates) {
+        try {
+          // Get all batches for this date
+          const batches = await storage.getBatches(username, date);
+
+          // Decrypt and merge all batches
+          const decryptedData: any = {
+            date,
+            user: username,
+            sync_time: new Date().toISOString(),
+            sleep: [],
+            heart_rate: [],
+            resting_heart_rate: null,
+            hrv: [],
+            steps: null,
+            workouts: [],
+            blood_oxygen: [],
+            menstrual: [],
+            weight: null,
+            medications: [],
+            mindfulness: [],
+          };
+
+          for (const batch of batches) {
+            try {
+              // Decrypt the batch data
+              const decrypted = decryptIOSEncryptedData(batch.data, username);
+              const data = JSON.parse(decrypted);
+
+              // Merge each data type
+              const typeMap: Record<string, string> = {
+                sleep: 'sleep',
+                heartRate: 'heart_rate',
+                restingHeartRate: 'resting_heart_rate',
+                hrv: 'hrv',
+                steps: 'steps',
+                workouts: 'workouts',
+                bloodOxygen: 'blood_oxygen',
+                menstrual: 'menstrual',
+                weight: 'weight',
+                medications: 'medications',
+                mindfulness: 'mindfulness',
+              };
+
+              for (const [iosKey, internalKey] of Object.entries(typeMap)) {
+                const value = (data as any)[iosKey];
+                if (value !== undefined && value !== null) {
+                  if (Array.isArray(value)) {
+                    decryptedData[internalKey] = decryptedData[internalKey].concat(value);
+                  } else if (internalKey === 'resting_heart_rate' || internalKey === 'weight' || internalKey === 'steps') {
+                    decryptedData[internalKey] = value;
+                  }
+                }
+              }
+            } catch (decryptError) {
+              logger.error(`Failed to decrypt batch ${batch.index} for ${username} on ${date}:`, decryptError);
+            }
+          }
+
+          result.push(decryptedData);
+        } catch (error) {
+          logger.error(`Failed to process data for ${username} on ${date}:`, error);
+        }
+      }
+
+      logger.info(`Admin fetch decrypted: ${username}, ${result.length} days`);
+
+      res.json({
+        success: true,
+        username,
+        count: result.length,
+        data: result,
+      });
+    } catch (error) {
+      logger.error('Admin fetch decrypted error', { error });
+      next(error);
+    }
+  }
+
+  /**
+   * GET /health/admin/users
+   * Get list of available users (for Mac Mini discovery)
+   */
+  async adminGetUsers(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const users = await prisma.user.findMany({
+        where: { isActive: true },
+        select: { username: true },
+      });
+
+      res.json({
+        success: true,
+        users: users.map((u) => u.username),
+      });
+    } catch (error) {
+      logger.error('Admin get users error', { error });
+      next(error);
+    }
+  }
+
+  /**
+   * GET /health/admin/dates
+   * Get available data dates for a user
+   */
+  async adminGetDates(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { username } = req.query;
+
+      if (!username || typeof username !== 'string') {
+        res.status(400).json({ error: 'Username is required' });
+        return;
+      }
+
+      const { StorageService } = await import('../services/storage.service');
+      const storage = new StorageService();
+
+      const dates = await storage.getAvailableDates(username);
+
+      res.json({
+        success: true,
+        username,
+        dates,
+      });
+    } catch (error) {
+      logger.error('Admin get dates error', { error });
+      next(error);
+    }
+  }
 }
 
 export const healthController = new HealthController();

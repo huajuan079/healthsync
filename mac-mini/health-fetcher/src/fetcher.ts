@@ -78,22 +78,25 @@ class HealthFetcher {
 
   /**
    * Process and store fetched data
+   * Always overwrites existing data
    */
   async processAndStore(username: string, fetchedData: any[]): Promise<void> {
     for (const dayData of fetchedData) {
       const { date } = dayData;
 
-      // Check if we already have this date
-      const existing = await getAvailableDates(username);
-      if (existing.includes(date)) {
-        console.log(`  Skipping ${date} (already exists)`);
-        continue;
-      }
-
       try {
-        // Save to local storage (data is already decrypted)
+        // Save to local storage (always overwrite)
         await saveHealthData(username, date, dayData);
-        console.log(`  ✓ Stored ${date}`);
+
+        // Check if this is an overwrite
+        const existing = await getAvailableDates(username);
+        const wasOverwritten = existing.includes(date);
+
+        if (wasOverwritten) {
+          console.log(`  ✓ Updated ${date} (overwritten)`);
+        } else {
+          console.log(`  ✓ Stored ${date}`);
+        }
       } catch (error) {
         console.error(`  ✗ Failed to store ${date}:`, error);
       }

@@ -18,7 +18,11 @@ struct SettingsView: View {
                     Image(systemName: "person.circle.fill").foregroundColor(.appAccent).font(.title2)
                     VStack(alignment: .leading, spacing: 4) {
                         Text("用户").font(.headline).foregroundColor(.text)
-                        Text("已登录").font(.caption).foregroundColor(.success)
+                        if let username = UserDefaultsManager.shared.username {
+                            Text("当前账号: \(username)").font(.caption).foregroundColor(.success)
+                        } else {
+                            Text("已登录").font(.caption).foregroundColor(.success)
+                        }
                     }
                     Spacer()
                 }.padding(.vertical, 8)

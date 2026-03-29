@@ -6,7 +6,8 @@ struct MainTabView: View {
         TabView(selection: $selectedTab) {
             HomeContainerView().tabItem { Label("首页", systemImage: "house") }.tag(0)
             HealthDetailContainerView().tabItem { Label("健康", systemImage: "heart") }.tag(1)
-            SettingsContainerView().tabItem { Label("设置", systemImage: "gear") }.tag(2)
+            WorkoutDetailContainerView().tabItem { Label("运动", systemImage: "figure.run") }.tag(2)
+            SettingsContainerView().tabItem { Label("设置", systemImage: "gear") }.tag(3)
         }
         .tint(.appAccent)
     }
@@ -23,6 +24,13 @@ struct HealthDetailContainerView: View {
     @EnvironmentObject var container: AppContainer
     var body: some View {
         HealthDetailView(container: container)
+    }
+}
+
+struct WorkoutDetailContainerView: View {
+    @EnvironmentObject var container: AppContainer
+    var body: some View {
+        WorkoutDetailView(container: container)
     }
 }
 

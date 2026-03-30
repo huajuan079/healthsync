@@ -14,7 +14,7 @@ export const config = {
   },
 
   dataRetention: {
-    days: parseInt(process.env.DATA_RETENTION_DAYS || '7', 10),
+    days: parseInt(process.env.DATA_RETENTION_DAYS || '90', 10), // 改为 90 天
   },
 
   cors: {

@@ -1,0 +1,23 @@
+# Mac Mini Health Fetcher Cron Configuration
+# Edit with: crontab -e
+# View with: crontab -l
+
+# 每天早上 10:15 执行数据获取（在 iPhone 同步后 15 分钟）
+# iPhone 在 10:00 同步昨天+今天数据
+# Mac Mini 在 10:15 获取最近 2 天数据并覆盖旧数据
+15 10 * * * cd ~/.openclaw/health-fetcher && /usr/local/bin/npm start recent 2 >> ~/.openclaw/health-fetcher/logs/cron.log 2>&1
+
+# 注意事项：
+# 1. 确保 npm 路径正确（使用 which npm 查看）
+# 2. 确保日志目录存在：mkdir -p ~/.openclaw/health-fetcher/logs
+# 3. 测试 cron 任务：tail -f ~/.openclaw/health-fetcher/logs/cron.log
+
+# 数据流程：
+# 10:00  iPhone 同步昨天 + 今天数据 → 服务器
+# 10:15  Mac Mini 获取最近 2 天 → 本地归档
+#
+# 数据完整性：
+# - 昨晚睡眠 ✓ (昨天的数据)
+# - 昨天运动 ✓ (昨天的数据)
+# - 今早睡眠 ✓ (今天的数据)
+# - 今早体重 ✓ (今天的数据)

@@ -134,22 +134,28 @@ export class StorageService {
 
   /**
    * Clean up all users' old data
+   * @returns Total number of deleted records
    */
-  async cleanupAllUsersData(): Promise<void> {
+  async cleanupAllUsersData(): Promise<number> {
     const users = await prisma.user.findMany({
       where: { isActive: true },
     });
 
+    let totalDeleted = 0;
+
     for (const user of users) {
-      await this.cleanupOldData(user.username);
+      const deleted = await this.cleanupOldData(user.username);
+      totalDeleted += deleted;
     }
 
     // Also clean up expired sessions
-    await prisma.session.deleteMany({
+    const sessionResult = await prisma.session.deleteMany({
       where: { expiresAt: { lt: new Date() } },
     });
 
-    logger.info('Completed cleanup of all users data');
+    logger.info(`Completed cleanup of all users data: ${totalDeleted} health records + ${sessionResult.count} sessions deleted`);
+
+    return totalDeleted;
   }
 
   /**

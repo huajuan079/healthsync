@@ -3,6 +3,7 @@ import { config, validateConfig } from './config';
 import { prisma } from './models/prisma';
 import { AuthService } from './services/auth.service';
 import { createLogger } from './utils/logger';
+import { cleanupJob } from './jobs/cleanup.job';
 
 const logger = createLogger('Server');
 
@@ -31,6 +32,9 @@ async function startServer(): Promise<void> {
       logger.info(`Server listening on http://0.0.0.0:${config.port}`);
       logger.info(`Environment: ${config.nodeEnv}`);
     });
+
+    // Start cleanup job
+    cleanupJob.start();
 
     // Graceful shutdown
     const shutdown = async () => {

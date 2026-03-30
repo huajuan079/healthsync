@@ -10,7 +10,6 @@ final class UserDefaultsManager {
 
     private enum Keys {
         static let serverURL = "serverURL"
-        static let syncRangeDays = "syncRangeDays"
         static let autoSyncEnabled = "autoSyncEnabled"
         static let lastSyncTime = "lastSyncTime"
         static let username = "username"
@@ -21,11 +20,6 @@ final class UserDefaultsManager {
     var serverURL: String {
         get { UserDefaults.standard.string(forKey: Keys.serverURL) ?? "http://localhost:3000" }
         set { UserDefaults.standard.set(newValue, forKey: Keys.serverURL) }
-    }
-
-    var syncRangeDays: Int {
-        get { UserDefaults.standard.integer(forKey: Keys.syncRangeDays) }
-        set { UserDefaults.standard.set(newValue, forKey: Keys.syncRangeDays) }
     }
 
     var autoSyncEnabled: Bool {
@@ -47,7 +41,6 @@ final class UserDefaultsManager {
 
     func reset() {
         UserDefaults.standard.removeObject(forKey: Keys.serverURL)
-        UserDefaults.standard.removeObject(forKey: Keys.syncRangeDays)
         UserDefaults.standard.removeObject(forKey: Keys.autoSyncEnabled)
         UserDefaults.standard.removeObject(forKey: Keys.lastSyncTime)
     }

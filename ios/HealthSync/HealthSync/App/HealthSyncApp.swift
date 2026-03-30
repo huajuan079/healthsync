@@ -11,6 +11,7 @@ struct HealthSyncApp: App {
                 .environmentObject(container)
                 .onAppear {
                     setupAppearance()
+                    setupBackgroundSync()
                 }
         }
     }
@@ -34,6 +35,13 @@ struct HealthSyncApp: App {
         UINavigationBar.appearance().standardAppearance = navAppearance
         UINavigationBar.appearance().scrollEdgeAppearance = navAppearance
         UINavigationBar.appearance().tintColor = UIColor(Color.appAccent)
+    }
+
+    private func setupBackgroundSync() {
+        // Register and schedule background sync task
+        BackgroundSyncTaskManager.shared.registerBackgroundTask()
+        BackgroundSyncTaskManager.shared.scheduleBackgroundSync()
+        print("Background sync scheduled for daily 11 PM")
     }
 }
 

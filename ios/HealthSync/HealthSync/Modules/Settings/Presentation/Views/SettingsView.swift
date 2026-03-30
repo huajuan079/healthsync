@@ -36,17 +36,6 @@ struct SettingsView: View {
 
             Section {
                 HStack {
-                    Text("同步范围").foregroundColor(.text)
-                    Spacer()
-                    Picker("", selection: $viewModel.syncRange) {
-                        Text("7天").tag(7)
-                        Text("30天").tag(30)
-                        Text("全部").tag(-1)
-                    }
-                    .foregroundColor(.text)
-                    .onChange(of: viewModel.syncRange) { _ in viewModel.saveSettings() }
-                }
-                HStack {
                     Text("自动同步").foregroundColor(.text)
                     Spacer()
                     Text("每天 23:00").foregroundColor(.secondaryText)

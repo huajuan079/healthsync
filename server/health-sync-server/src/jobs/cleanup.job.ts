@@ -1,5 +1,7 @@
 import cron from 'node-cron';
-import { logger } from '../utils/logger.js';
+import { createLogger } from '../utils/logger.js';
+
+const logger = createLogger('CleanupJob');
 import { StorageService } from '../services/storage.service.js';
 import { config } from '../config/index.js';
 
@@ -50,7 +52,7 @@ export class CleanupJob {
   /**
    * Run cleanup job manually (for testing)
    */
-  async runManual(): Promise<void> {
+  async runManual(): Promise<number> {
     logger.info('Running manual cleanup...');
     const deletedCount = await this.storage.cleanupAllUsersData();
     logger.info(`Manual cleanup completed: deleted ${deletedCount} records`);

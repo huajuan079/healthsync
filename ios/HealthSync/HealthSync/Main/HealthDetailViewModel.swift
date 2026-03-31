@@ -24,14 +24,9 @@ final class HealthDetailViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
 
-        do {
-            let data = await healthRepository.fetchAllData(for: selectedDate)
-            healthData = data
-            isLoading = false
-        } catch {
-            isLoading = false
-            errorMessage = error.localizedDescription
-        }
+        let (data, _) = await healthRepository.fetchAllData(for: selectedDate)
+        healthData = data
+        isLoading = false
     }
 
     func changeDay(by days: Int) {

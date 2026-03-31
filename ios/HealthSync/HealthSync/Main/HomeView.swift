@@ -33,6 +33,13 @@ struct HomeView: View {
         .sheet(isPresented: $viewModel.showSyncStatus) {
             SyncStatusView(viewModel: viewModel.syncViewModel)
         }
+        .alert("同步失败", isPresented: $viewModel.showError) {
+            Button("确定", role: .cancel) {
+                viewModel.syncViewModel.showError = false
+            }
+        } message: {
+            Text(viewModel.errorMessage ?? "未知错误")
+        }
         .onAppear { viewModel.loadTodaySummary() }
     }
 }

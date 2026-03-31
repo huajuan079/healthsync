@@ -17,8 +17,6 @@ protocol HealthServiceProtocol {
     func fetchMenstrualData(for date: Date) async throws -> [MenstrualData]
     func fetchWeightData(for date: Date) async throws -> WeightData?
     func fetchMedicationData(for date: Date) async throws -> [MedicationData]
-    func fetchMindfulnessData(for date: Date) async throws -> [MindfulnessData]
-
     func fetchAllHealthData(for date: Date) async throws -> AllHealthData
     func fetchHealthDataRange(from startDate: Date, to endDate: Date) async throws -> [AllHealthData]
 }

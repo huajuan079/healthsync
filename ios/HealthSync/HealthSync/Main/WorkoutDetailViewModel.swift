@@ -7,8 +7,11 @@ final class WorkoutDetailViewModel: ObservableObject {
     @Published var selectedDate = Date()
     @Published var workouts: [WorkoutData] = []
     @Published var errorMessage: String?
+    @Published var showSyncError = false
     @Published var isSyncing = false
     @Published var syncMessage: String?
+    @Published var showSyncWarnings = false
+    @Published var syncWarnings: [String] = []
 
     private let healthRepository: HealthRepositoryProtocol
     private var syncUseCase: SyncHealthDataUseCaseProtocol
@@ -28,14 +31,9 @@ final class WorkoutDetailViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
 
-        do {
-            let data = await healthRepository.fetchAllData(for: selectedDate)
-            workouts = data.workouts
-            isLoading = false
-        } catch {
-            isLoading = false
-            errorMessage = error.localizedDescription
-        }
+        let (data, _) = await healthRepository.fetchAllData(for: selectedDate)
+        workouts = data.workouts
+        isLoading = false
     }
 
     func syncWorkouts() {
@@ -61,20 +59,27 @@ final class WorkoutDetailViewModel: ObservableObject {
 
             if result.success {
                 syncMessage = "同步成功！已同步 \(result.totalRecords) 条记录"
-                // Reload data after sync
                 await fetchWorkouts()
 
-                // Auto-hide message after 3 seconds
-                Task {
-                    try? await Task.sleep(nanoseconds: 3_000_000_000)
-                    syncMessage = nil
+                if !result.warnings.isEmpty {
+                    syncWarnings = result.warnings
+                    showSyncWarnings = true
+                } else {
+                    Task {
+                        try? await Task.sleep(nanoseconds: 3_000_000_000)
+                        syncMessage = nil
+                    }
                 }
             } else {
-                syncMessage = "同步失败：\(result.errorMessage ?? "未知错误")"
+                errorMessage = result.errorMessage ?? "未知错误"
+                showSyncError = true
+                syncMessage = nil
             }
         } catch {
             isSyncing = false
-            syncMessage = "同步失败：\(error.localizedDescription)"
+            syncMessage = nil
+            errorMessage = error.localizedDescription
+            showSyncError = true
         }
     }
 

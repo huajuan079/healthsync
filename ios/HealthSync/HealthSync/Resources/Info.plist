@@ -47,12 +47,12 @@
 		<string>fetch</string>
 		<string>processing</string>
 	</array>
-	<key>UIStatusBarStyle</key>
-	<string></string>
 	<key>UILaunchStoryboardName</key>
 	<string>Launch Screen</string>
 	<key>UIRequiresFullScreen</key>
 	<true/>
+	<key>UIStatusBarStyle</key>
+	<string></string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

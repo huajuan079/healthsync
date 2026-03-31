@@ -276,7 +276,7 @@ export class HealthController {
               <td>${(upload.fileSize / 1024).toFixed(1)} KB</td>
               <td class="status-${upload.status}">${upload.status === 'completed' ? '✅ 完成' : upload.status === 'pending' ? '⏳ 处理中' : '❌ 失败'}</td>
               <td>${new Date(upload.createdAt).toLocaleString('zh-CN')}</td>
-              <td><a href="/api/health/web/upload/${upload.id}" style="color: #667eea; text-decoration: none;">👁️ 查看</a></td>
+              <td><a href="/healthsync/api/health/web/upload/${upload.id}" target="_blank" style="color: #667eea; text-decoration: none;">👁️ 查看</a></td>
             </tr>
             `).join('')}
           </tbody>
@@ -442,7 +442,7 @@ export class HealthController {
 </head>
 <body>
   <div class="container">
-    <a href="/api/health/web/uploads" class="back-link">← 返回列表</a>
+    <a href="/healthsync/api/health/web/uploads" target="_blank" class="back-link">← 返回列表</a>
     <h1>📄 上传记录详情</h1>
 
     <div class="detail-card">

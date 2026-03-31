@@ -7,7 +7,7 @@ protocol HealthRepositoryProtocol {
     func isHealthDataAvailable() -> Bool
     func requestAuthorization() async throws -> Bool
     func checkAuthorizationStatus() -> Bool
-    func fetchAllData(for date: Date) async -> AllHealthData
+    func fetchAllData(for date: Date) async -> (data: AllHealthData, warnings: [String])
     func fetchDataRange(from startDate: Date, to endDate: Date) async -> [AllHealthData]
     func getTodaySummary() async -> TodayHealthSummary
 }
@@ -76,7 +76,7 @@ final class HealthRepository: HealthRepositoryProtocol {
         return allAuthorized
     }
 
-    func fetchAllData(for date: Date) async -> AllHealthData {
+    func fetchAllData(for date: Date) async -> (data: AllHealthData, warnings: [String]) {
         print("[HealthRepository] fetchAllData called for date: \(date)")
         let dateString = formatDate(date)
 
@@ -91,25 +91,23 @@ final class HealthRepository: HealthRepositoryProtocol {
         async let menstrual = fetchMenstrualData(for: date)
         async let weight = fetchWeightData(for: date)
         async let medications = fetchMedicationData(for: date)
-        async let mindfulness = fetchMindfulnessData(for: date)
 
-        let result = await AllHealthData(
+        let result = AllHealthData(
             date: dateString,
             syncTime: Date(),
-            sleep: sleep,
-            heartRate: heartRate,
-            restingHeartRate: restingHR,
-            hrv: hrv,
-            steps: steps,
-            workouts: workouts,
-            bloodOxygen: bloodOxygen,
-            menstrual: menstrual,
-            weight: weight,
-            medications: medications,
-            mindfulness: mindfulness
+            sleep: await sleep,
+            heartRate: await heartRate,
+            restingHeartRate: await restingHR,
+            hrv: await hrv,
+            steps: await steps,
+            workouts: await workouts,
+            bloodOxygen: await bloodOxygen,
+            menstrual: await menstrual,
+            weight: await weight,
+            medications: await medications
         )
         print("[HealthRepository] fetchAllData completed, steps: \(result.steps?.value ?? -1)")
-        return result
+        return (data: result, warnings: [])
     }
 
     func fetchDataRange(from startDate: Date, to endDate: Date) async -> [AllHealthData] {
@@ -127,7 +125,7 @@ final class HealthRepository: HealthRepositoryProtocol {
         var result: [AllHealthData] = []
 
         for date in dates {
-            let data = await fetchAllData(for: date)
+            let (data, _) = await fetchAllData(for: date)
             result.append(data)
         }
 
@@ -591,51 +589,4 @@ final class HealthRepository: HealthRepositoryProtocol {
         return []
     }
 
-    private func fetchMindfulnessData(for date: Date) async -> [MindfulnessData] {
-        guard let mindfulType = HKObjectType.categoryType(forIdentifier: .mindfulSession) else {
-            return []
-        }
-
-        print("[HealthRepository] Fetching mindfulness data for date: \(date)")
-
-        let calendar = Calendar.current
-        let startOfDay = calendar.startOfDay(for: date)
-        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
-            return []
-        }
-
-        let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: [])
-
-        return await withCheckedContinuation { continuation in
-            let query = HKSampleQuery(sampleType: mindfulType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, error in
-                if let error = error {
-                    print("[HealthRepository] Mindfulness fetch error: \(error)")
-                    continuation.resume(returning: [])
-                    return
-                }
-
-                guard let mindfulSamples = samples as? [HKCategorySample] else {
-                    continuation.resume(returning: [])
-                    return
-                }
-
-                let dateFormatter = DateFormatter()
-                dateFormatter.dateFormat = "yyyy-MM-dd"
-
-                let result = mindfulSamples.map { sample in
-                    MindfulnessData(
-                        date: dateFormatter.string(from: sample.startDate),
-                        startDate: sample.startDate,
-                        endDate: sample.endDate,
-                        duration: sample.endDate.timeIntervalSince(sample.startDate),
-                        type: .meditation
-                    )
-                }
-
-                continuation.resume(returning: result)
-            }
-
-            healthStore.execute(query)
-        }
-    }
 }

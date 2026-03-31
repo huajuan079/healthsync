@@ -146,11 +146,6 @@ struct HealthDataCardsView: View {
                     color: .appAccent
                 )
             }
-
-            // 正念
-            if !data.mindfulness.isEmpty {
-                MindfulnessCard(sessions: data.mindfulness)
-            }
         }
     }
 }
@@ -623,56 +618,6 @@ struct BloodOxygenCard: View {
         guard !samples.isEmpty else { return nil }
         let total = samples.reduce(0.0) { $0 + $1.value }
         return total / Double(samples.count)
-    }
-}
-
-// MARK: - Mindfulness Card
-
-struct MindfulnessCard: View {
-    let sessions: [MindfulnessData]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: "brain.head.profile")
-                    .foregroundColor(.sleepColor)
-                    .font(.title2)
-                Text("正念")
-                    .font(.headline)
-                    .foregroundColor(.text)
-                Spacer()
-                let total = sessions.reduce(0.0) { $0 + $1.duration }
-                Text("\(Int(total / 60))分钟")
-                    .font(.subheadline)
-                    .foregroundColor(.secondaryText)
-            }
-
-            VStack(spacing: 8) {
-                ForEach(sessions, id: \.startDate) { session in
-                    HStack {
-                        Text(sessionTitle(session.type))
-                            .font(.subheadline)
-                            .foregroundColor(.text)
-                        Spacer()
-                        Text("\(Int(session.duration / 60))分钟")
-                            .font(.caption)
-                            .foregroundColor(.secondaryText)
-                    }
-                }
-            }
-        }
-        .padding()
-        .background(Color.secondaryBackground)
-        .cornerRadius(12)
-    }
-
-    func sessionTitle(_ type: MindfulnessData.MindfulType) -> String {
-        switch type {
-        case .meditation: return "冥想"
-        case .yoga: return "瑜伽"
-        case .breathing: return "呼吸"
-        case .other: return "其他"
-        }
     }
 }
 

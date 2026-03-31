@@ -44,7 +44,6 @@ struct AllHealthData: Codable {
     let menstrual: [MenstrualData]
     let weight: WeightData?
     let medications: [MedicationData]
-    let mindfulness: [MindfulnessData]
 }
 
 struct RestingHeartRateData: HealthData, Codable {
@@ -123,19 +122,3 @@ struct MedicationData: HealthData, Codable {
     let schedule: String?
 }
 
-// MARK: - Mindfulness Data
-
-struct MindfulnessData: HealthData, Codable, Hashable {
-    let date: String
-    let startDate: Date
-    let endDate: Date
-    let duration: TimeInterval
-    let type: MindfulType
-
-    enum MindfulType: String, Codable, Hashable {
-        case meditation
-        case yoga
-        case breathing
-        case other
-    }
-}

@@ -18,6 +18,7 @@ struct SyncResult {
     let totalRecords: Int
     let success: Bool
     let errorMessage: String?
+    let warnings: [String]
 }
 
 // MARK: - Sync Progress
@@ -68,7 +69,7 @@ final class SyncHealthDataUseCase: SyncHealthDataUseCaseProtocol {
 
         // Fetch health data
         print("[SyncHealthDataUseCase] Fetching health data...")
-        let healthData = await healthRepository.fetchAllData(for: date)
+        let (healthData, fetchWarnings) = await healthRepository.fetchAllData(for: date)
         print("[SyncHealthDataUseCase] Health data fetched, has steps: \(healthData.steps != nil)")
 
         // Serialize to JSON
@@ -102,7 +103,8 @@ final class SyncHealthDataUseCase: SyncHealthDataUseCaseProtocol {
             batchesUploaded: 1,
             totalRecords: totalRecords,
             success: true,
-            errorMessage: nil
+            errorMessage: nil,
+            warnings: fetchWarnings
         )
     }
 
@@ -139,7 +141,8 @@ final class SyncHealthDataUseCase: SyncHealthDataUseCaseProtocol {
                     batchesUploaded: 0,
                     totalRecords: 0,
                     success: false,
-                    errorMessage: error.localizedDescription
+                    errorMessage: error.localizedDescription,
+                    warnings: []
                 ))
             }
 

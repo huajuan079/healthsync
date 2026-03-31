@@ -103,9 +103,7 @@ final class APIService: APIServiceProtocol {
             throw APIError.networkError(error)
         }
 
-        try handleResponse(response)
-
-        // Handle 401 Unauthorized - try refresh token
+        // Handle 401 Unauthorized - try refresh token before throwing
         if let httpResponse = response as? HTTPURLResponse,
            httpResponse.statusCode == 401,
            endpoint != .login(username: "", password: ""),
@@ -114,6 +112,8 @@ final class APIService: APIServiceProtocol {
             try await refreshAndRetry()
             return try await self.request(endpoint)
         }
+
+        try handleResponse(response)
 
         do {
             let decoded = try JSONDecoder().decode(T.self, from: data)

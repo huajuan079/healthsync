@@ -64,6 +64,18 @@ struct WorkoutDetailView: View {
             }
             .navigationBarTitleDisplayMode(.inline)
         }
+        .alert("同步失败", isPresented: $viewModel.showSyncError) {
+            Button("确定", role: .cancel) {}
+        } message: {
+            Text(viewModel.errorMessage ?? "未知错误")
+        }
+        .alert("部分数据缺失", isPresented: $viewModel.showSyncWarnings) {
+            Button("知道了", role: .cancel) {
+                viewModel.syncWarnings = []
+            }
+        } message: {
+            Text(viewModel.syncWarnings.joined(separator: "\n\n"))
+        }
         .onAppear {
             if viewModel.workouts.isEmpty {
                 viewModel.loadWorkouts()

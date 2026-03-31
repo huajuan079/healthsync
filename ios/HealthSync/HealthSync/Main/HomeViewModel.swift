@@ -10,6 +10,8 @@ final class HomeViewModel: ObservableObject {
     @Published var lastSyncTime: Date?
     @Published var todaySummary: TodayHealthSummary?
     @Published var showSyncStatus: Bool = false
+    @Published var showError: Bool = false
+    @Published var errorMessage: String?
 
     private let healthRepository: HealthRepositoryProtocol
     private let syncUseCase: SyncHealthDataUseCase
@@ -31,9 +33,8 @@ final class HomeViewModel: ObservableObject {
     }
 
     private func setupSyncMonitoring() {
-        // Use Combine to monitor sync state changes efficiently
         syncViewModel.$isSyncing
-            .dropFirst() // Skip initial value
+            .dropFirst()
             .sink { [weak self] syncing in
                 guard let self = self else { return }
                 if !syncing && self.isSyncing {
@@ -41,6 +42,14 @@ final class HomeViewModel: ObservableObject {
                     self.lastSyncTime = Date()
                     self.saveLastSyncTime()
                 }
+            }
+            .store(in: &cancellables)
+
+        syncViewModel.$showError
+            .sink { [weak self] show in
+                guard let self = self else { return }
+                self.showError = show
+                self.errorMessage = self.syncViewModel.errorMessage
             }
             .store(in: &cancellables)
     }

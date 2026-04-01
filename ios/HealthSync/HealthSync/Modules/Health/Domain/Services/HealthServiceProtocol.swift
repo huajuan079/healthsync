@@ -17,6 +17,17 @@ protocol HealthServiceProtocol {
     func fetchMenstrualData(for date: Date) async throws -> [MenstrualData]
     func fetchWeightData(for date: Date) async throws -> WeightData?
     func fetchMedicationData(for date: Date) async throws -> [MedicationData]
+
+    // New health data types
+    func fetchWristTemperature(for date: Date) async throws -> WristTemperatureData?
+    func fetchRespiratoryRate(for date: Date) async throws -> RespiratoryRateData?
+    func fetchBodyTemperature(for date: Date) async throws -> BodyTemperatureData?
+    func fetchBloodPressure(for date: Date) async throws -> BloodPressureData?
+    func fetchActiveEnergyBurned(for date: Date) async throws -> ActiveEnergyData?
+    func fetchStandHours(for date: Date) async throws -> StandHoursData?
+    func fetchFlightsClimbed(for date: Date) async throws -> FlightsClimbedData?
+    func fetchExerciseTime(for date: Date) async throws -> ExerciseTimeData?
+
     func fetchAllHealthData(for date: Date) async throws -> AllHealthData
     func fetchHealthDataRange(from startDate: Date, to endDate: Date) async throws -> [AllHealthData]
 }
@@ -31,6 +42,7 @@ final class HealthQueryFactory {
         var types = Set<HKObjectType>()
 
         if #available(iOS 16.0, *) {
+            // Existing types
             types.insert(HKQuantityType(.heartRate))
             types.insert(HKQuantityType(.restingHeartRate))
             types.insert(HKQuantityType(.heartRateVariabilitySDNN))
@@ -39,13 +51,23 @@ final class HealthQueryFactory {
             types.insert(HKQuantityType(.oxygenSaturation))
             types.insert(HKQuantityType(.bodyMass))
             types.insert(HKQuantityType(.bodyMassIndex))
+
+            // Body metrics
+            types.insert(HKQuantityType(.respiratoryRate))
+            types.insert(HKQuantityType(.basalBodyTemperature))
+            types.insert(HKQuantityType(.bloodPressureSystolic))
+            types.insert(HKQuantityType(.bloodPressureDiastolic))
+
+            // Activity metrics
+            types.insert(HKQuantityType(.activeEnergyBurned))
+            types.insert(HKQuantityType(.flightsClimbed))
         }
 
         types.insert(HKObjectType.workoutType())
         types.insert(HKCategoryType(.sleepAnalysis))
 
         if #available(iOS 17.0, *) {
-            // types.insert(HKCategoryType(.sexualActivity))
+            types.insert(HKQuantityType(.appleSleepingWristTemperature))
         }
 
         return types

@@ -44,6 +44,16 @@ struct AllHealthData: Codable {
     let menstrual: [MenstrualData]
     let weight: WeightData?
     let medications: [MedicationData]
+
+    // New health data types
+    let wristTemperature: WristTemperatureData?
+    let respiratoryRate: RespiratoryRateData?
+    let bodyTemperature: BodyTemperatureData?
+    let bloodPressure: BloodPressureData?
+    let activeEnergyBurned: ActiveEnergyData?
+    let standHours: StandHoursData?
+    let flightsClimbed: FlightsClimbedData?
+    let exerciseTime: ExerciseTimeData?
 }
 
 struct RestingHeartRateData: HealthData, Codable {
@@ -120,5 +130,73 @@ struct MedicationData: HealthData, Codable {
     let unit: String?
     let timestamp: Date
     let schedule: String?
+}
+
+// MARK: - Wrist Temperature Data
+
+struct WristTemperatureData: HealthData, Codable {
+    let date: String
+    let samples: [TemperatureSample]
+    struct TemperatureSample: Codable { let timestamp: Date; let value: Double; let unit: String }
+}
+
+// MARK: - Respiratory Rate Data
+
+struct RespiratoryRateData: HealthData, Codable {
+    let date: String
+    let samples: [RespiratorySample]
+    struct RespiratorySample: Codable { let timestamp: Date; let value: Double; let unit: String }
+}
+
+// MARK: - Body Temperature Data
+
+struct BodyTemperatureData: HealthData, Codable {
+    let date: String
+    let samples: [BodyTempSample]
+    struct BodyTempSample: Codable { let timestamp: Date; let value: Double; let unit: String }
+}
+
+// MARK: - Blood Pressure Data
+
+struct BloodPressureData: HealthData, Codable {
+    let date: String
+    let samples: [BloodPressureSample]
+    struct BloodPressureSample: Codable {
+        let timestamp: Date
+        let systolicValue: Double
+        let diastolicValue: Double
+        let unit: String
+    }
+}
+
+// MARK: - Active Energy Burned Data
+
+struct ActiveEnergyData: HealthData, Codable {
+    let date: String
+    let value: Double
+    let unit: String
+}
+
+// MARK: - Stand Hours Data
+
+struct StandHoursData: HealthData, Codable {
+    let date: String
+    let value: Int
+}
+
+// MARK: - Flights Climbed Data
+
+struct FlightsClimbedData: HealthData, Codable {
+    let date: String
+    let value: Double
+    let unit: String
+}
+
+// MARK: - Exercise Time Data
+
+struct ExerciseTimeData: HealthData, Codable {
+    let date: String
+    let value: TimeInterval
+    let unit: String
 }
 

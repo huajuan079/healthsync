@@ -17,6 +17,16 @@ export interface HealthData {
   weight: any;
   medications: any[];
   mindfulness: any[];
+
+  // New health data types
+  wrist_temperature?: any;
+  respiratory_rate?: any;
+  body_temperature?: any;
+  blood_pressure?: any;
+  active_energy_burned?: any;
+  stand_hours?: any;
+  flights_climbed?: any;
+  exercise_time?: any;
 }
 
 /**

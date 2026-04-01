@@ -92,6 +92,16 @@ final class HealthRepository: HealthRepositoryProtocol {
         async let weight = fetchWeightData(for: date)
         async let medications = fetchMedicationData(for: date)
 
+        // New health data types
+        async let wristTemperature = fetchWristTemperature(for: date)
+        async let respiratoryRate = fetchRespiratoryRate(for: date)
+        async let bodyTemperature = fetchBodyTemperature(for: date)
+        async let bloodPressure = fetchBloodPressure(for: date)
+        async let activeEnergyBurned = fetchActiveEnergyBurned(for: date)
+        async let standHours = fetchStandHours(for: date)
+        async let flightsClimbed = fetchFlightsClimbed(for: date)
+        async let exerciseTime = fetchExerciseTime(for: date)
+
         let result = AllHealthData(
             date: dateString,
             syncTime: Date(),
@@ -104,7 +114,15 @@ final class HealthRepository: HealthRepositoryProtocol {
             bloodOxygen: await bloodOxygen,
             menstrual: await menstrual,
             weight: await weight,
-            medications: await medications
+            medications: await medications,
+            wristTemperature: await wristTemperature,
+            respiratoryRate: await respiratoryRate,
+            bodyTemperature: await bodyTemperature,
+            bloodPressure: await bloodPressure,
+            activeEnergyBurned: await activeEnergyBurned,
+            standHours: await standHours,
+            flightsClimbed: await flightsClimbed,
+            exerciseTime: await exerciseTime
         )
         print("[HealthRepository] fetchAllData completed, steps: \(result.steps?.value ?? -1)")
         return (data: result, warnings: [])
@@ -587,6 +605,315 @@ final class HealthRepository: HealthRepositoryProtocol {
 
     private func fetchMedicationData(for date: Date) async -> [MedicationData] {
         return []
+    }
+
+    // MARK: - New Health Data Fetch Methods
+
+    private func fetchWristTemperature(for date: Date) async -> WristTemperatureData? {
+        guard #available(iOS 17.0, *),
+              let tempType = HKQuantityType.quantityType(forIdentifier: .appleSleepingWristTemperature) else {
+            return nil
+        }
+
+        print("[HealthRepository] Fetching wrist temperature for date: \(date)")
+
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: date)
+        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
+            return nil
+        }
+
+        let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: [])
+
+        return await withCheckedContinuation { continuation in
+            let query = HKSampleQuery(sampleType: tempType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, error in
+                if let error = error {
+                    print("[HealthRepository] Wrist temperature fetch error: \(error)")
+                    continuation.resume(returning: nil)
+                    return
+                }
+
+                guard let tempSamples = samples as? [HKQuantitySample] else {
+                    continuation.resume(returning: nil)
+                    return
+                }
+
+                let samples = tempSamples.map { sample in
+                    WristTemperatureData.TemperatureSample(
+                        timestamp: sample.startDate,
+                        value: sample.quantity.doubleValue(for: .degreeCelsius()),
+                        unit: "°C"
+                    )
+                }
+
+                let result = WristTemperatureData(
+                    date: self.formatDate(date),
+                    samples: samples
+                )
+
+                continuation.resume(returning: result)
+            }
+
+            healthStore.execute(query)
+        }
+    }
+
+    private func fetchRespiratoryRate(for date: Date) async -> RespiratoryRateData? {
+        guard #available(iOS 16.0, *),
+              let respiratoryType = HKQuantityType.quantityType(forIdentifier: .respiratoryRate) else {
+            return nil
+        }
+
+        print("[HealthRepository] Fetching respiratory rate for date: \(date)")
+
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: date)
+        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
+            return nil
+        }
+
+        let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: [])
+
+        return await withCheckedContinuation { continuation in
+            let query = HKSampleQuery(sampleType: respiratoryType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, error in
+                if let error = error {
+                    print("[HealthRepository] Respiratory rate fetch error: \(error)")
+                    continuation.resume(returning: nil)
+                    return
+                }
+
+                guard let respiratorySamples = samples as? [HKQuantitySample] else {
+                    continuation.resume(returning: nil)
+                    return
+                }
+
+                let samples = respiratorySamples.map { sample in
+                    RespiratoryRateData.RespiratorySample(
+                        timestamp: sample.startDate,
+                        value: sample.quantity.doubleValue(for: HKUnit.count().unitDivided(by: .minute())),
+                        unit: "breaths/min"
+                    )
+                }
+
+                let result = RespiratoryRateData(
+                    date: self.formatDate(date),
+                    samples: samples
+                )
+
+                continuation.resume(returning: result)
+            }
+
+            healthStore.execute(query)
+        }
+    }
+
+    private func fetchBodyTemperature(for date: Date) async -> BodyTemperatureData? {
+        guard let tempType = HKQuantityType.quantityType(forIdentifier: .basalBodyTemperature) else {
+            return nil
+        }
+
+        print("[HealthRepository] Fetching body temperature for date: \(date)")
+
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: date)
+        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
+            return nil
+        }
+
+        let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: [])
+
+        return await withCheckedContinuation { continuation in
+            let query = HKSampleQuery(sampleType: tempType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, error in
+                if let error = error {
+                    print("[HealthRepository] Body temperature fetch error: \(error)")
+                    continuation.resume(returning: nil)
+                    return
+                }
+
+                guard let tempSamples = samples as? [HKQuantitySample] else {
+                    continuation.resume(returning: nil)
+                    return
+                }
+
+                let samples = tempSamples.map { sample in
+                    BodyTemperatureData.BodyTempSample(
+                        timestamp: sample.startDate,
+                        value: sample.quantity.doubleValue(for: .degreeCelsius()),
+                        unit: "°C"
+                    )
+                }
+
+                let result = BodyTemperatureData(
+                    date: self.formatDate(date),
+                    samples: samples
+                )
+
+                continuation.resume(returning: result)
+            }
+
+            healthStore.execute(query)
+        }
+    }
+
+    private func fetchBloodPressure(for date: Date) async -> BloodPressureData? {
+        guard let systolicType = HKQuantityType.quantityType(forIdentifier: .bloodPressureSystolic),
+              let diastolicType = HKQuantityType.quantityType(forIdentifier: .bloodPressureDiastolic) else {
+            return nil
+        }
+
+        print("[HealthRepository] Fetching blood pressure for date: \(date)")
+
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: date)
+        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
+            return nil
+        }
+
+        let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: [])
+
+        // Fetch both systolic and diastolic
+        return await withCheckedContinuation { continuation in
+            let systolicQuery = HKSampleQuery(sampleType: systolicType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, systolicSamples, error in
+                if let error = error {
+                    print("[HealthRepository] Blood pressure systolic fetch error: \(error)")
+                    continuation.resume(returning: nil)
+                    return
+                }
+
+                guard let systolicSamples = systolicSamples as? [HKQuantitySample] else {
+                    continuation.resume(returning: nil)
+                    return
+                }
+
+                // Match with diastolic readings
+                var samples: [BloodPressureData.BloodPressureSample] = []
+
+                for systolicSample in systolicSamples {
+                    // Try to find corresponding diastolic reading (within 5 minutes)
+                    let matchingDiastolic = systolicSamples.first { diastolicSample in
+                        let timeDiff = abs(diastolicSample.startDate.timeIntervalSince(systolicSample.startDate))
+                        return timeDiff < 300 // 5 minutes
+                    }
+
+                    if let diastolic = matchingDiastolic {
+                        samples.append(BloodPressureData.BloodPressureSample(
+                            timestamp: systolicSample.startDate,
+                            systolicValue: systolicSample.quantity.doubleValue(for: .millimeterOfMercury()),
+                            diastolicValue: diastolic.quantity.doubleValue(for: .millimeterOfMercury()),
+                            unit: "mmHg"
+                        ))
+                    }
+                }
+
+                if samples.isEmpty {
+                    continuation.resume(returning: nil)
+                } else {
+                    let result = BloodPressureData(
+                        date: self.formatDate(date),
+                        samples: samples
+                    )
+                    continuation.resume(returning: result)
+                }
+            }
+
+            healthStore.execute(systolicQuery)
+        }
+    }
+
+    private func fetchActiveEnergyBurned(for date: Date) async -> ActiveEnergyData? {
+        guard #available(iOS 16.0, *),
+              let energyType = HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned) else {
+            return nil
+        }
+
+        print("[HealthRepository] Fetching active energy burned for date: \(date)")
+
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: date)
+        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
+            return nil
+        }
+
+        let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: .strictStartDate)
+
+        return await withCheckedContinuation { continuation in
+            let query = HKStatisticsQuery(quantityType: energyType, quantitySamplePredicate: predicate, options: .cumulativeSum) { _, statistics, error in
+                if let error = error {
+                    print("[HealthRepository] Active energy burned fetch error: \(error)")
+                    continuation.resume(returning: nil)
+                    return
+                }
+
+                let totalEnergy = statistics?.sumQuantity()?.doubleValue(for: .kilocalorie()) ?? 0
+
+                if totalEnergy > 0 {
+                    let result = ActiveEnergyData(
+                        date: self.formatDate(date),
+                        value: totalEnergy,
+                        unit: "kcal"
+                    )
+                    continuation.resume(returning: result)
+                } else {
+                    continuation.resume(returning: nil)
+                }
+            }
+
+            healthStore.execute(query)
+        }
+    }
+
+    private func fetchStandHours(for date: Date) async -> StandHoursData? {
+        // Stand hours are not directly available as samples
+        // We'll need to use a different approach or skip for now
+        return nil
+    }
+
+    private func fetchFlightsClimbed(for date: Date) async -> FlightsClimbedData? {
+        guard #available(iOS 16.0, *),
+              let flightsType = HKQuantityType.quantityType(forIdentifier: .flightsClimbed) else {
+            return nil
+        }
+
+        print("[HealthRepository] Fetching flights climbed for date: \(date)")
+
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: date)
+        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
+            return nil
+        }
+
+        let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: .strictStartDate)
+
+        return await withCheckedContinuation { continuation in
+            let query = HKStatisticsQuery(quantityType: flightsType, quantitySamplePredicate: predicate, options: .cumulativeSum) { _, statistics, error in
+                if let error = error {
+                    print("[HealthRepository] Flights climbed fetch error: \(error)")
+                    continuation.resume(returning: nil)
+                    return
+                }
+
+                let totalFlights = statistics?.sumQuantity()?.doubleValue(for: .count()) ?? 0
+
+                if totalFlights > 0 {
+                    let result = FlightsClimbedData(
+                        date: self.formatDate(date),
+                        value: totalFlights,
+                        unit: "flights"
+                    )
+                    continuation.resume(returning: result)
+                } else {
+                    continuation.resume(returning: nil)
+                }
+            }
+
+            healthStore.execute(query)
+        }
+    }
+
+    private func fetchExerciseTime(for date: Date) async -> ExerciseTimeData? {
+        // Exercise time is not directly available as samples
+        // We'll need to use a different approach or skip for now
+        return nil
     }
 
 }

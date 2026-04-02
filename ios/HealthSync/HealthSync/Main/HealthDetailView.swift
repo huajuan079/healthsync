@@ -146,6 +146,53 @@ struct HealthDataCardsView: View {
                     color: .appAccent
                 )
             }
+
+            // 经期数据
+            if !data.menstrual.isEmpty {
+                MenstrualDataCard(menstrualData: data.menstrual)
+            }
+
+            // 手腕温度
+            if let wristTemp = data.wristTemperature, !wristTemp.samples.isEmpty {
+                WristTemperatureCard(samples: wristTemp.samples)
+            }
+
+            // 呼吸频率
+            if let respiratory = data.respiratoryRate, !respiratory.samples.isEmpty {
+                RespiratoryRateCard(samples: respiratory.samples)
+            }
+
+            // 体温
+            if let bodyTemp = data.bodyTemperature, !bodyTemp.samples.isEmpty {
+                BodyTemperatureCard(samples: bodyTemp.samples)
+            }
+
+            // 血压
+            if let bloodPressure = data.bloodPressure, !bloodPressure.samples.isEmpty {
+                BloodPressureCard(samples: bloodPressure.samples)
+            }
+
+            // 主动能量消耗
+            if let activeEnergy = data.activeEnergyBurned {
+                StepsMetricCard(
+                    icon: "flame.fill",
+                    title: "主动能量",
+                    value: String(format: "%.0f", activeEnergy.value),
+                    unit: activeEnergy.unit,
+                    color: .energyColor
+                )
+            }
+
+            // 爬楼层数
+            if let flights = data.flightsClimbed {
+                StepsMetricCard(
+                    icon: "stairs",
+                    title: "爬楼层数",
+                    value: String(format: "%.0f", flights.value),
+                    unit: flights.unit,
+                    color: .appAccent
+                )
+            }
         }
     }
 }
@@ -618,6 +665,279 @@ struct BloodOxygenCard: View {
         guard !samples.isEmpty else { return nil }
         let total = samples.reduce(0.0) { $0 + $1.value }
         return total / Double(samples.count)
+    }
+}
+
+// MARK: - Menstrual Data Card
+
+struct MenstrualDataCard: View {
+    let menstrualData: [MenstrualData]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: "drop.fill")
+                    .foregroundColor(.pink)
+                    .font(.title2)
+                Text("经期")
+                    .font(.headline)
+                    .foregroundColor(.text)
+                Spacer()
+            }
+
+            VStack(spacing: 8) {
+                ForEach(Array(menstrualData.enumerated()), id: \.element.startDate) { index, data in
+                    HStack {
+                        Text(formatFlowLevel(data.flowLevel))
+                            .font(.subheadline)
+                            .foregroundColor(.text)
+                        Spacer()
+                        Text(formatTime(data.startDate))
+                            .font(.caption)
+                            .foregroundColor(.secondaryText)
+                    }
+                    if index < menstrualData.count - 1 {
+                        Divider()
+                            .background(Color.tertiaryBackground)
+                    }
+                }
+            }
+        }
+        .padding()
+        .background(Color.secondaryBackground)
+        .cornerRadius(12)
+    }
+
+    func formatFlowLevel(_ level: MenstrualData.FlowLevel?) -> String {
+        guard let level = level else { return "未知" }
+        switch level {
+        case .none: return "未记录"
+        case .light: return "少量"
+        case .medium: return "中等"
+        case .heavy: return "大量"
+        }
+    }
+
+    func formatTime(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return formatter.string(from: date)
+    }
+}
+
+// MARK: - Wrist Temperature Card
+
+struct WristTemperatureCard: View {
+    let samples: [WristTemperatureData.TemperatureSample]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: "thermometer")
+                    .foregroundColor(.orange)
+                    .font(.title2)
+                Text("手腕温度")
+                    .font(.headline)
+                    .foregroundColor(.text)
+                Spacer()
+                if let avg = averageTemperature {
+                    Text("平均 \(String(format: "%.2f", avg))°C")
+                        .font(.subheadline)
+                        .foregroundColor(.secondaryText)
+                }
+            }
+
+            if samples.count > 1, let min = samples.map({ $0.value }).min(),
+               let max = samples.map({ $0.value }).max() {
+                HStack(spacing: 20) {
+                    VStack(spacing: 4) {
+                        Text("\(String(format: "%.2f", min))°C")
+                            .font(.headline)
+                            .foregroundColor(.text)
+                        Text("最低")
+                            .font(.caption)
+                            .foregroundColor(.secondaryText)
+                    }
+                    VStack(spacing: 4) {
+                        Text("\(String(format: "%.2f", max))°C")
+                            .font(.headline)
+                            .foregroundColor(.text)
+                        Text("最高")
+                            .font(.caption)
+                            .foregroundColor(.secondaryText)
+                    }
+                    Spacer()
+                }
+            }
+        }
+        .padding()
+        .background(Color.secondaryBackground)
+        .cornerRadius(12)
+    }
+
+    var averageTemperature: Double? {
+        guard !samples.isEmpty else { return nil }
+        let total = samples.reduce(0.0) { $0 + $1.value }
+        return total / Double(samples.count)
+    }
+}
+
+// MARK: - Respiratory Rate Card
+
+struct RespiratoryRateCard: View {
+    let samples: [RespiratoryRateData.RespiratorySample]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: "lungs")
+                    .foregroundColor(.cyan)
+                    .font(.title2)
+                Text("呼吸频率")
+                    .font(.headline)
+                    .foregroundColor(.text)
+                Spacer()
+                if let avg = averageRate {
+                    Text("平均 \(Int(avg)) 次/分")
+                        .font(.subheadline)
+                        .foregroundColor(.secondaryText)
+                }
+            }
+
+            if samples.count > 1, let min = samples.map({ $0.value }).min(),
+               let max = samples.map({ $0.value }).max() {
+                HStack(spacing: 20) {
+                    VStack(spacing: 4) {
+                        Text("\(Int(min))")
+                            .font(.headline)
+                            .foregroundColor(.text)
+                        Text("最低")
+                            .font(.caption)
+                            .foregroundColor(.secondaryText)
+                    }
+                    VStack(spacing: 4) {
+                        Text("\(Int(max))")
+                            .font(.headline)
+                            .foregroundColor(.text)
+                        Text("最高")
+                            .font(.caption)
+                            .foregroundColor(.secondaryText)
+                    }
+                    Spacer()
+                }
+            }
+        }
+        .padding()
+        .background(Color.secondaryBackground)
+        .cornerRadius(12)
+    }
+
+    var averageRate: Double? {
+        guard !samples.isEmpty else { return nil }
+        let total = samples.reduce(0.0) { $0 + $1.value }
+        return total / Double(samples.count)
+    }
+}
+
+// MARK: - Body Temperature Card
+
+struct BodyTemperatureCard: View {
+    let samples: [BodyTemperatureData.BodyTempSample]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: "thermometer.sun")
+                    .foregroundColor(.red)
+                    .font(.title2)
+                Text("体温")
+                    .font(.headline)
+                    .foregroundColor(.text)
+                Spacer()
+                if let avg = averageTemperature {
+                    Text("平均 \(String(format: "%.2f", avg))°C")
+                        .font(.subheadline)
+                        .foregroundColor(.secondaryText)
+                }
+            }
+
+            if samples.count > 1, let min = samples.map({ $0.value }).min(),
+               let max = samples.map({ $0.value }).max() {
+                HStack(spacing: 20) {
+                    VStack(spacing: 4) {
+                        Text("\(String(format: "%.2f", min))°C")
+                            .font(.headline)
+                            .foregroundColor(.text)
+                        Text("最低")
+                            .font(.caption)
+                            .foregroundColor(.secondaryText)
+                    }
+                    VStack(spacing: 4) {
+                        Text("\(String(format: "%.2f", max))°C")
+                            .font(.headline)
+                            .foregroundColor(.text)
+                        Text("最高")
+                            .font(.caption)
+                            .foregroundColor(.secondaryText)
+                    }
+                    Spacer()
+                }
+            }
+        }
+        .padding()
+        .background(Color.secondaryBackground)
+        .cornerRadius(12)
+    }
+
+    var averageTemperature: Double? {
+        guard !samples.isEmpty else { return nil }
+        let total = samples.reduce(0.0) { $0 + $1.value }
+        return total / Double(samples.count)
+    }
+}
+
+// MARK: - Blood Pressure Card
+
+struct BloodPressureCard: View {
+    let samples: [BloodPressureData.BloodPressureSample]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: "heart.text.square")
+                    .foregroundColor(.purple)
+                    .font(.title2)
+                Text("血压")
+                    .font(.headline)
+                    .foregroundColor(.text)
+                Spacer()
+            }
+
+            if let latest = samples.first {
+                HStack(spacing: 20) {
+                    VStack(spacing: 4) {
+                        Text("\(Int(latest.systolicValue))")
+                            .font(.headline)
+                            .foregroundColor(.text)
+                        Text("收缩压")
+                            .font(.caption)
+                            .foregroundColor(.secondaryText)
+                    }
+                    VStack(spacing: 4) {
+                        Text("\(Int(latest.diastolicValue))")
+                            .font(.headline)
+                            .foregroundColor(.text)
+                        Text("舒张压")
+                            .font(.caption)
+                            .foregroundColor(.secondaryText)
+                    }
+                    Spacer()
+                }
+            }
+        }
+        .padding()
+        .background(Color.secondaryBackground)
+        .cornerRadius(12)
     }
 }
 

@@ -78,4 +78,23 @@ final class HealthDetailViewModel: ObservableObject {
         }
         return tomorrow <= Date()
     }
+
+    var hasHealthData: Bool {
+        guard let data = healthData else { return false }
+        return !data.sleep.isEmpty ||
+               data.heartRate != nil ||
+               data.restingHeartRate != nil ||
+               data.hrv != nil ||
+               data.steps != nil ||
+               !data.workouts.isEmpty ||
+               data.bloodOxygen != nil ||
+               !data.menstrual.isEmpty ||
+               data.weight != nil ||
+               data.wristTemperature != nil ||
+               data.respiratoryRate != nil ||
+               data.bodyTemperature != nil ||
+               data.bloodPressure != nil ||
+               data.activeEnergyBurned != nil ||
+               data.flightsClimbed != nil
+    }
 }

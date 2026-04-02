@@ -28,7 +28,11 @@ struct HealthDetailView: View {
                             )
 
                             if let data = viewModel.healthData {
-                                HealthDataCardsView(data: data)
+                                if viewModel.hasHealthData {
+                                    HealthDataCardsView(data: data)
+                                } else {
+                                    NoDataView(date: viewModel.formattedDate)
+                                }
                             } else {
                                 EmptyStateView(onLoadData: { viewModel.loadHealthData() })
                             }
@@ -938,6 +942,31 @@ struct BloodPressureCard: View {
         .padding()
         .background(Color.secondaryBackground)
         .cornerRadius(12)
+    }
+}
+
+// MARK: - No Data View
+
+struct NoDataView: View {
+    let date: String
+
+    var body: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "doc.text.magnifyingglass")
+                .font(.system(size: 50))
+                .foregroundColor(.secondaryText.opacity(0.5))
+
+            Text("\(date) 暂无数据")
+                .font(.headline)
+                .foregroundColor(.text)
+
+            Text("该日期没有健康数据记录")
+                .font(.subheadline)
+                .foregroundColor(.secondaryText)
+                .multilineTextAlignment(.center)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, minHeight: 200)
     }
 }
 

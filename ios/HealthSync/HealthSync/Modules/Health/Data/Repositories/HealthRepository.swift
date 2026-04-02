@@ -554,8 +554,66 @@ final class HealthRepository: HealthRepositoryProtocol {
     }
 
     private func fetchMenstrualData(for date: Date) async -> [MenstrualData] {
-        // Menstrual data access may require iOS 17+
-        return []
+        guard let menstrualType = HKObjectType.categoryType(forIdentifier: .menstrualFlow) else {
+            print("[HealthRepository] Menstrual flow type not available")
+            return []
+        }
+
+        print("[HealthRepository] Fetching menstrual data for date: \(date)")
+
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: date)
+        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
+            return []
+        }
+
+        let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay, options: [])
+
+        return await withCheckedContinuation { continuation in
+            let query = HKSampleQuery(sampleType: menstrualType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, error in
+                let dateString = self.formatDate(date)
+
+                if let error = error {
+                    print("[HealthRepository] Menstrual data fetch error: \(error)")
+                    continuation.resume(returning: [])
+                    return
+                }
+
+                guard let menstrualSamples = samples as? [HKCategorySample] else {
+                    continuation.resume(returning: [])
+                    return
+                }
+
+                let result = menstrualSamples.compactMap { sample -> MenstrualData? in
+                    let flowLevel: MenstrualData.FlowLevel
+                    switch sample.value {
+                    case HKCategoryValueMenstrualFlow.unspecified.rawValue:
+                        flowLevel = .none
+                    case HKCategoryValueMenstrualFlow.light.rawValue:
+                        flowLevel = .light
+                    case HKCategoryValueMenstrualFlow.medium.rawValue:
+                        flowLevel = .medium
+                    case HKCategoryValueMenstrualFlow.heavy.rawValue:
+                        flowLevel = .heavy
+                    default:
+                        flowLevel = .none
+                    }
+
+                    return MenstrualData(
+                        date: dateString,
+                        startDate: sample.startDate,
+                        endDate: sample.endDate,
+                        flowLevel: flowLevel,
+                        symptoms: nil
+                    )
+                }
+
+                print("[HealthRepository] Menstrual data samples fetched: \(result.count)")
+                continuation.resume(returning: result)
+            }
+
+            healthStore.execute(query)
+        }
     }
 
     private func fetchWeightData(for date: Date) async -> WeightData? {

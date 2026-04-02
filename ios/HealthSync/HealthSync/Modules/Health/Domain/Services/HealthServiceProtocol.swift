@@ -65,6 +65,7 @@ final class HealthQueryFactory {
 
         types.insert(HKObjectType.workoutType())
         types.insert(HKCategoryType(.sleepAnalysis))
+        types.insert(HKCategoryType(.menstrualFlow))
 
         if #available(iOS 17.0, *) {
             types.insert(HKQuantityType(.appleSleepingWristTemperature))

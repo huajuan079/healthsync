@@ -24,6 +24,31 @@ final class HealthDetailViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
 
+        // Check authorization status first
+        let isAuthorized = healthRepository.checkAuthorizationStatus()
+        print("[HealthDetailViewModel] Authorization status: \(isAuthorized)")
+
+        if !isAuthorized {
+            print("[HealthDetailViewModel] Requesting authorization...")
+            do {
+                let granted = try await healthRepository.requestAuthorization()
+                print("[HealthDetailViewModel] Authorization granted: \(granted)")
+
+                // Re-check actual authorization status after request
+                let nowAuthorized = healthRepository.checkAuthorizationStatus()
+                if !nowAuthorized {
+                    errorMessage = "需要授权访问健康数据"
+                    isLoading = false
+                    return
+                }
+            } catch {
+                print("[HealthDetailViewModel] Authorization error: \(error)")
+                errorMessage = "授权失败: \(error.localizedDescription)"
+                isLoading = false
+                return
+            }
+        }
+
         let (data, _) = await healthRepository.fetchAllData(for: selectedDate)
         healthData = data
         isLoading = false

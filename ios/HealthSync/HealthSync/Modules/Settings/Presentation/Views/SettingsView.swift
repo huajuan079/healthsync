@@ -35,40 +35,40 @@ struct SettingsView: View {
             .listRowBackground(Color.secondaryBackground)
 
             Section {
-                HStack {
+                Toggle(isOn: Binding(
+                    get: { viewModel.autoSyncEnabled },
+                    set: { viewModel.toggleAutoSync($0) }
+                )) {
                     Text("自动同步").foregroundColor(.text)
-                    Spacer()
-                    Text("每天 23:00").foregroundColor(.secondaryText)
+                }
+                .tint(.appAccent)
+
+                if viewModel.autoSyncEnabled {
+                    Picker("同步时间", selection: Binding(
+                        get: { viewModel.syncHour },
+                        set: { viewModel.updateSyncHour($0) }
+                    )) {
+                        ForEach(0..<24, id: \.self) { hour in
+                            Text(String(format: "%02d:00", hour)).tag(hour)
+                        }
+                    }
+                    .foregroundColor(.text)
+                    .tint(.appAccent)
                 }
             } header: {
                 Text("同步设置")
                     .font(.subheadline)
                     .foregroundColor(.secondaryText)
                     .textCase(.none)
-            }
-            .listRowBackground(Color.secondaryBackground)
-
-            Section {
-                HStack {
-                    Text("服务器地址").foregroundColor(.text)
-                    Spacer()
-                    TextField("", text: $viewModel.serverURL)
-                        .multilineTextAlignment(.trailing).foregroundColor(.secondaryText)
-                        .textInputAutocapitalization(.never)
-                }
-                .onChange(of: viewModel.serverURL) { _ in viewModel.saveSettings() }
-                Button("测试连接") { }.foregroundColor(.appAccent)
-            } header: {
-                Text("服务器")
-                    .font(.subheadline)
-                    .foregroundColor(.secondaryText)
-                    .textCase(.none)
             } footer: {
-                Text("修改服务器地址后需要重新登录").foregroundColor(.tertiaryText)
+                if viewModel.autoSyncEnabled {
+                    Text("系统会在 \(String(format: "%02d:00", viewModel.syncHour)) 之后找合适时机执行后台同步，实际时间由 iOS 决定")
+                        .foregroundColor(.tertiaryText)
+                }
             }
             .listRowBackground(Color.secondaryBackground)
 
-            Section {
+Section {
                 Button("检查授权状态") {
                     viewModel.checkAuthorizationAndAlert()
                 }

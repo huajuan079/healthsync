@@ -20,13 +20,13 @@ final class BackgroundSyncTaskManager {
         }
     }
 
-    // Schedule background sync for 10:00 AM
+    // Schedule background sync at user-configured hour (default 10:00)
     func scheduleBackgroundSync() {
         let request = BGProcessingTaskRequest(identifier: taskIdentifier)
 
-        // Schedule for 10:00 AM
+        let hour = UserDefaultsManager.shared.syncHour
         var dateComponents = DateComponents()
-        dateComponents.hour = 10
+        dateComponents.hour = hour
         dateComponents.minute = 0
 
         request.earliestBeginDate = Calendar.current.nextDate(
@@ -40,7 +40,7 @@ final class BackgroundSyncTaskManager {
 
         do {
             try BGTaskScheduler.shared.submit(request)
-            print("Background sync scheduled for 10:00 AM (yesterday + today)")
+            print("Background sync scheduled for \(String(format: "%02d", hour)):00")
         } catch {
             print("Failed to schedule background sync: \(error)")
         }

@@ -38,10 +38,10 @@ struct HealthSyncApp: App {
     }
 
     private func setupBackgroundSync() {
-        // Register and schedule background sync task
         BackgroundSyncTaskManager.shared.registerBackgroundTask()
-        BackgroundSyncTaskManager.shared.scheduleBackgroundSync()
-        print("Background sync scheduled for daily 11 PM")
+        if UserDefaultsManager.shared.autoSyncEnabled {
+            BackgroundSyncTaskManager.shared.scheduleBackgroundSync()
+        }
     }
 }
 

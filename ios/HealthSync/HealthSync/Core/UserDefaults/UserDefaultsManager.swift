@@ -11,6 +11,7 @@ final class UserDefaultsManager {
     private enum Keys {
         static let serverURL = "serverURL"
         static let autoSyncEnabled = "autoSyncEnabled"
+        static let syncHour = "syncHour"
         static let lastSyncTime = "lastSyncTime"
         static let username = "username"
     }
@@ -25,6 +26,14 @@ final class UserDefaultsManager {
     var autoSyncEnabled: Bool {
         get { UserDefaults.standard.bool(forKey: Keys.autoSyncEnabled) }
         set { UserDefaults.standard.set(newValue, forKey: Keys.autoSyncEnabled) }
+    }
+
+    var syncHour: Int {
+        get {
+            let stored = UserDefaults.standard.integer(forKey: Keys.syncHour)
+            return stored == 0 ? 10 : stored
+        }
+        set { UserDefaults.standard.set(newValue, forKey: Keys.syncHour) }
     }
 
     var lastSyncTime: Date? {

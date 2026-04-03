@@ -5,6 +5,8 @@ import HealthKit
 @MainActor
 final class SettingsViewModel: ObservableObject {
     @Published var serverURL: String = "http://localhost:3000"
+    @Published var autoSyncEnabled: Bool = false
+    @Published var syncHour: Int = 10
     @Published var showingLogoutAlert = false
     @Published var showingAuthAlert = false
     @Published var authAlertMessage = ""
@@ -73,7 +75,28 @@ final class SettingsViewModel: ObservableObject {
         showingAuthAlert = true
     }
 
+    func toggleAutoSync(_ enabled: Bool) {
+        autoSyncEnabled = enabled
+        UserDefaultsManager.shared.autoSyncEnabled = enabled
+        if enabled {
+            BackgroundSyncTaskManager.shared.scheduleBackgroundSync()
+        } else {
+            BackgroundSyncTaskManager.shared.cancelPendingTasks()
+        }
+    }
+
+    func updateSyncHour(_ hour: Int) {
+        syncHour = hour
+        UserDefaultsManager.shared.syncHour = hour
+        if autoSyncEnabled {
+            BackgroundSyncTaskManager.shared.cancelPendingTasks()
+            BackgroundSyncTaskManager.shared.scheduleBackgroundSync()
+        }
+    }
+
     private func loadSettings() {
         serverURL = UserDefaults.standard.string(forKey: "serverURL") ?? "http://localhost:3000"
+        autoSyncEnabled = UserDefaultsManager.shared.autoSyncEnabled
+        syncHour = UserDefaultsManager.shared.syncHour
     }
 }

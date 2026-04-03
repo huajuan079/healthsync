@@ -12,7 +12,11 @@ struct HomeView: View {
         ScrollView {
             VStack(spacing: 20) {
                 HeaderView(isConnected: viewModel.isConnected)
-                StatusCard(lastSyncTime: viewModel.lastSyncTime, isSyncing: viewModel.isSyncing)
+                StatusCard(
+                    lastSyncTime: viewModel.lastSyncTime,
+                    isSyncing: viewModel.isSyncing,
+                    onTap: viewModel.syncToday
+                )
                 TodayHealthCard(summary: viewModel.todaySummary)
                 SyncOptionsCard(
                     isSyncing: viewModel.isSyncing,
@@ -78,40 +82,51 @@ struct HeaderView: View {
 struct StatusCard: View {
     let lastSyncTime: Date?
     let isSyncing: Bool
+    let onTap: () -> Void
 
     var body: some View {
-        HStack(spacing: 16) {
-            ZStack {
-                Circle()
-                    .fill(Color.appAccent.opacity(0.2))
-                    .frame(width: 50, height: 50)
-                Image(systemName: "arrow.triangle.2.circlepath")
-                    .font(.title2)
-                    .foregroundColor(.appAccent)
-            }
-            VStack(alignment: .leading, spacing: 4) {
-                Text("同步状态")
-                    .font(.subheadline)
-                    .foregroundColor(.secondaryText)
+        Button(action: onTap) {
+            HStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(Color.appAccent.opacity(0.2))
+                        .frame(width: 50, height: 50)
+                    Image(systemName: "arrow.triangle.2.circlepath")
+                        .font(.title2)
+                        .foregroundColor(.appAccent)
+                        .rotationEffect(.degrees(isSyncing ? 360 : 0))
+                        .animation(isSyncing ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: isSyncing)
+                }
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("同步状态")
+                        .font(.subheadline)
+                        .foregroundColor(.secondaryText)
 
-                if isSyncing {
-                    HStack(spacing: 8) {
-                        ProgressView().scaleEffect(0.8)
-                        Text("正在同步...")
+                    if isSyncing {
+                        HStack(spacing: 8) {
+                            ProgressView().scaleEffect(0.8)
+                            Text("正在同步...")
+                                .foregroundColor(.text)
+                        }
+                    } else if let t = lastSyncTime {
+                        Text("上次同步: \(t, style: .relative)")
+                            .foregroundColor(.text)
+                    } else {
+                        Text("点击同步今日数据")
                             .foregroundColor(.text)
                     }
-                } else if let t = lastSyncTime {
-                    Text("上次同步: \(t, style: .relative)")
-                        .foregroundColor(.text)
-                } else {
-                    Text("尚未同步")
-                        .foregroundColor(.text)
+                }
+                Spacer()
+                if !isSyncing {
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(.tertiaryText)
                 }
             }
-            Spacer()
+            .padding()
+            .cardStyle()
         }
-        .padding()
-        .cardStyle()
+        .disabled(isSyncing)
+        .buttonStyle(.plain)
     }
 }
 

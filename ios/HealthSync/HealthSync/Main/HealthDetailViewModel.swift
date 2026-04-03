@@ -33,10 +33,7 @@ final class HealthDetailViewModel: ObservableObject {
             do {
                 let granted = try await healthRepository.requestAuthorization()
                 print("[HealthDetailViewModel] Authorization granted: \(granted)")
-
-                // Re-check actual authorization status after request
-                let nowAuthorized = healthRepository.checkAuthorizationStatus()
-                if !nowAuthorized {
+                if !granted {
                     errorMessage = "需要授权访问健康数据"
                     isLoading = false
                     return

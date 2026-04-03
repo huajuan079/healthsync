@@ -33,12 +33,12 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>NSHealthClinicalHealthRecordsShareUsageDescription</key>
+	<string>此应用需要访问您的临床健康记录以便同步到服务器进行备份分析。</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>此应用需要访问您的健康数据以便同步到服务器进行备份分析。</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>此应用需要写入健康数据的权限以便同步数据。</string>
-	<key>NSHealthClinicalHealthRecordsShareUsageDescription</key>
-	<string>此应用需要访问您的临床健康记录以便同步到服务器进行备份分析。</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

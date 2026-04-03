@@ -59,21 +59,11 @@ final class HealthRepository: HealthRepositoryProtocol {
     }
 
     func checkAuthorizationStatus() -> Bool {
-        let typesToRead = HealthQueryFactory.shared.dataTypesToRead
-        var allAuthorized = true
-
-        for type in typesToRead {
-            let status = healthStore.authorizationStatus(for: type)
-            print("[HealthRepository] Auth status for \(type): \(status.rawValue)")
-            // 只有 sharingAuthorized (2) 才是真正授权了
-            if status != .sharingAuthorized {
-                allAuthorized = false
-                print("[HealthRepository] \(type) not authorized (status: \(status.rawValue))")
-            }
-        }
-
-        print("[HealthRepository] checkAuthorizationStatus result: \(allAuthorized)")
-        return allAuthorized
+        // HealthKit does not expose read authorization status for privacy reasons.
+        // authorizationStatus(for:) only reflects *write* permission, and returns
+        // .sharingDenied when the app requests read-only access (toShare: nil).
+        // The correct approach is to attempt data queries directly after requestAuthorization succeeds.
+        return true
     }
 
     func fetchAllData(for date: Date) async -> (data: AllHealthData, warnings: [String]) {

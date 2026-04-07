@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9FA0F4682F855F5A0043048C /* SyncHealthDataIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FA0F4672F855F5A0043048C /* SyncHealthDataIntent.swift */; };
+		9FA0F4692F855F5A0043048C /* HealthSyncShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FA0F4662F855F5A0043048C /* HealthSyncShortcuts.swift */; };
 		A1A1A1A1000000000000001 /* HealthSyncApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2A2A2A2000000000000001 /* HealthSyncApp.swift */; };
 		A1A1A1A2000000000000001 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2A2A2A2000000000000002 /* KeychainManager.swift */; };
 		A1A1A1A3000000000000001 /* AppContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2A2A2A2000000000000003 /* AppContainer.swift */; };
@@ -43,6 +45,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		9FA0F4662F855F5A0043048C /* HealthSyncShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthSyncShortcuts.swift; sourceTree = "<group>"; };
+		9FA0F4672F855F5A0043048C /* SyncHealthDataIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncHealthDataIntent.swift; sourceTree = "<group>"; };
 		A0000001000000000000001 /* HealthSync.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HealthSync.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A2A2A2A2000000000000001 /* HealthSyncApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthSyncApp.swift; sourceTree = "<group>"; };
 		A2A2A2A2000000000000002 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
@@ -91,6 +95,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		9FA0F46A2F855F650043048C /* Intents */ = {
+			isa = PBXGroup;
+			children = (
+				9FA0F4662F855F5A0043048C /* HealthSyncShortcuts.swift */,
+				9FA0F4672F855F5A0043048C /* SyncHealthDataIntent.swift */,
+			);
+			path = Intents;
+			sourceTree = "<group>";
+		};
 		A4000001000000000000001 = {
 			isa = PBXGroup;
 			children = (
@@ -263,6 +276,7 @@
 		A400002F000000000000001 /* Sync */ = {
 			isa = PBXGroup;
 			children = (
+				9FA0F46A2F855F650043048C /* Intents */,
 				A400009A000000000000001 /* Background */,
 				A400009B000000000000001 /* Data */,
 				A400009C000000000000001 /* Domain */,
@@ -638,6 +652,8 @@
 				A1A1A1B7000000000000001 /* SettingsViewModel.swift in Sources */,
 				A1A1A1B8000000000000001 /* SettingsView.swift in Sources */,
 				A1A1A1B9000000000000001 /* HomeView.swift in Sources */,
+				9FA0F4682F855F5A0043048C /* SyncHealthDataIntent.swift in Sources */,
+				9FA0F4692F855F5A0043048C /* HealthSyncShortcuts.swift in Sources */,
 				A1A1A1BA0000000000000001 /* HomeViewModel.swift in Sources */,
 				A1A1A1BB0000000000000001 /* TabBarView.swift in Sources */,
 				C65190032F77862300AEB8E8 /* EncryptionConfig.swift in Sources */,

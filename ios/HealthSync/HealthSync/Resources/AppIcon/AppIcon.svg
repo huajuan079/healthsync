@@ -1,0 +1,161 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <!-- Background: deep midnight navy -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   style="stop-color:#03071a"/>
+      <stop offset="55%"  style="stop-color:#081630"/>
+      <stop offset="100%" style="stop-color:#0c1f4e"/>
+    </linearGradient>
+    <radialGradient id="bgGlow" cx="50%" cy="40%" r="50%">
+      <stop offset="0%"   style="stop-color:#1848a0;stop-opacity:0.60"/>
+      <stop offset="100%" style="stop-color:#03071a;stop-opacity:0"/>
+    </radialGradient>
+
+    <!-- Glass orb -->
+    <radialGradient id="glassOrb" cx="36%" cy="26%" r="72%">
+      <stop offset="0%"   style="stop-color:#ffffff;stop-opacity:0.15"/>
+      <stop offset="50%"  style="stop-color:#50b0f0;stop-opacity:0.06"/>
+      <stop offset="100%" style="stop-color:#004aaa;stop-opacity:0.02"/>
+    </radialGradient>
+    <linearGradient id="orbStroke" x1="12%" y1="3%" x2="88%" y2="97%">
+      <stop offset="0%"   style="stop-color:#ffffff;stop-opacity:0.65"/>
+      <stop offset="28%"  style="stop-color:#90deff;stop-opacity:0.32"/>
+      <stop offset="72%"  style="stop-color:#2277bb;stop-opacity:0.10"/>
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0.04"/>
+    </linearGradient>
+
+    <!-- ECG line -->
+    <linearGradient id="pulseGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   style="stop-color:#00c8f0;stop-opacity:0.15"/>
+      <stop offset="22%"  style="stop-color:#00ddbb"/>
+      <stop offset="62%"  style="stop-color:#00f0a0"/>
+      <stop offset="100%" style="stop-color:#00c8f0;stop-opacity:0.15"/>
+    </linearGradient>
+
+    <!-- Heart -->
+    <radialGradient id="heartGrad" cx="38%" cy="28%" r="68%">
+      <stop offset="0%"   style="stop-color:#ff80c0"/>
+      <stop offset="42%"  style="stop-color:#ee1a68"/>
+      <stop offset="100%" style="stop-color:#aa003a"/>
+    </radialGradient>
+    <linearGradient id="heartSheen" x1="8%" y1="0%" x2="62%" y2="58%">
+      <stop offset="0%"   style="stop-color:#ffffff;stop-opacity:0.52"/>
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0"/>
+    </linearGradient>
+
+    <!-- Sync ring -->
+    <linearGradient id="syncA" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   style="stop-color:#50eeff"/>
+      <stop offset="100%" style="stop-color:#00e8a8"/>
+    </linearGradient>
+    <linearGradient id="syncB" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   style="stop-color:#00e8a8"/>
+      <stop offset="100%" style="stop-color:#50eeff"/>
+    </linearGradient>
+
+    <!-- Specular highlight -->
+    <radialGradient id="specular" cx="38%" cy="12%" r="52%">
+      <stop offset="0%"   style="stop-color:#ffffff;stop-opacity:0.48"/>
+      <stop offset="55%"  style="stop-color:#ffffff;stop-opacity:0.07"/>
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0"/>
+    </radialGradient>
+
+    <!-- Filters -->
+    <filter id="ecgGlow" x="-10%" y="-120%" width="120%" height="340%">
+      <feGaussianBlur stdDeviation="8" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="heartShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="20" flood-color="#bb0040" flood-opacity="0.55"/>
+    </filter>
+    <filter id="syncGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="7" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <clipPath id="iconShape">
+      <rect width="1024" height="1024" rx="228" ry="228"/>
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#iconShape)">
+
+    <!-- Background -->
+    <rect width="1024" height="1024" fill="url(#bgGrad)"/>
+    <rect width="1024" height="1024" fill="url(#bgGlow)"/>
+    <circle cx="790" cy="150" r="270" fill="#1a5ada" opacity="0.05"/>
+    <circle cx="195" cy="870" r="240" fill="#0088cc" opacity="0.04"/>
+
+    <!-- ── Glass Orb ── -->
+    <circle cx="512" cy="490" r="358" fill="none" stroke="#68d8ff" stroke-width="1" opacity="0.14"/>
+    <circle cx="512" cy="490" r="350" fill="url(#glassOrb)"/>
+    <circle cx="512" cy="490" r="350" fill="none" stroke="url(#orbStroke)" stroke-width="2.5"/>
+
+    <!-- ── ECG Pulse Line (lower half of orb) ── -->
+    <!-- y=600 is the horizontal baseline, well below heart at y=390 -->
+    <!-- Bloom -->
+    <polyline
+      points="162,600  255,600  290,510  328,708  368,522  408,692  443,600  862,600"
+      fill="none" stroke="#00e8b0" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"
+      opacity="0.10" filter="url(#ecgGlow)"/>
+    <!-- Main line -->
+    <polyline
+      points="162,600  255,600  290,510  328,708  368,522  408,692  443,600  862,600"
+      fill="none" stroke="url(#pulseGrad)" stroke-width="5.5"
+      stroke-linecap="round" stroke-linejoin="round"/>
+
+    <!-- ── Heart + Sync Ring (upper portion) ── -->
+    <!-- Heart centered at (512, 375), sync ring radius=148 -->
+    <!-- Bottom of sync ring = 375+148 = 523 — stays above ECG baseline at 600 -->
+
+    <!-- Sync Ring: two arcs with arrows -->
+    <g filter="url(#syncGlow)">
+      <!--
+        Arc A: top-right half  (from 330° → 150° going clockwise, large arc)
+        Center=(512,375), r=148
+        Start 330°: x=512+148·cos(330°)=512+128=640, y=375+148·sin(330°)=375-74=301
+        End   150°: x=512+148·cos(150°)=512-128=384, y=375+148·sin(150°)=375+74=449
+        → sweep flag=1 (clockwise), large-arc=0
+      -->
+      <path d="M 640,301 A 148,148 0 0,1 384,449"
+            fill="none" stroke="url(#syncA)" stroke-width="7.5" stroke-linecap="round"/>
+      <!-- Arrowhead at end (pointing lower-left along arc tangent) -->
+      <polygon points="384,449  400,430  407,456" fill="#50eeff"/>
+
+      <!--
+        Arc B: bottom-left half (from 150° → 330° going clockwise, large arc)
+        Start 150°: (384,449)
+        End   330°: (640,301)
+        → sweep flag=1, large-arc=0
+      -->
+      <path d="M 384,449 A 148,148 0 0,1 640,301"
+            fill="none" stroke="url(#syncB)" stroke-width="7.5" stroke-linecap="round"/>
+      <!-- Arrowhead at end (pointing upper-right) -->
+      <polygon points="640,301  622,320  616,294" fill="#00e8a8"/>
+    </g>
+
+    <!-- Heart -->
+    <g transform="translate(512, 375)" filter="url(#heartShadow)">
+      <path d="
+        M 0 30
+        C -8 18  -95 -26  -95 -88
+        C -95 -140  -50 -164   0 -126
+        C  50 -164   95 -140   95 -88
+        C  95 -26    8  18    0  30 Z"
+        fill="url(#heartGrad)"/>
+      <path d="M -66 -112 C -38 -158 20 -158 44 -132 C 22 -113 -22 -104 -66 -112 Z"
+        fill="url(#heartSheen)"/>
+    </g>
+
+    <!-- ── Specular highlights on orb ── -->
+    <ellipse cx="452" cy="234" rx="162" ry="50"
+             fill="url(#specular)" transform="rotate(-10, 452, 234)"/>
+    <ellipse cx="330" cy="300" rx="50" ry="15"
+             fill="#ffffff" opacity="0.09" transform="rotate(-28, 330, 300)"/>
+
+    <!-- Edge vignette -->
+    <rect width="1024" height="1024" rx="228" ry="228"
+          fill="none" stroke="#000000" stroke-width="50" opacity="0.18"/>
+
+  </g>
+</svg>

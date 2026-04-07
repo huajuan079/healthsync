@@ -9,6 +9,29 @@
 /* Begin PBXBuildFile section */
 		9FA0F4682F855F5A0043048C /* SyncHealthDataIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FA0F4672F855F5A0043048C /* SyncHealthDataIntent.swift */; };
 		9FA0F4692F855F5A0043048C /* HealthSyncShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FA0F4662F855F5A0043048C /* HealthSyncShortcuts.swift */; };
+		9FA0F46C2F8565E30043048C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9FA0F46B2F8565E30043048C /* Assets.xcassets */; };
+		9FA0F4842F856A810043048C /* AppIcon-40~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 9FA0F47A2F856A810043048C /* AppIcon-40~ipad.png */; };
+		9FA0F4852F856A810043048C /* AppIcon-20@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 9FA0F46E2F856A810043048C /* AppIcon-20@2x.png */; };
+		9FA0F4862F856A810043048C /* AppIcon-40@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 9FA0F4782F856A810043048C /* AppIcon-40@2x~ipad.png */; };
+		9FA0F4872F856A810043048C /* AppIcon@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 9FA0F47F2F856A810043048C /* AppIcon@2x~ipad.png */; };
+		9FA0F4882F856A810043048C /* AppIcon-29.png in Resources */ = {isa = PBXBuildFile; fileRef = 9FA0F4722F856A810043048C /* AppIcon-29.png */; };
+		9FA0F4892F856A810043048C /* AppIcon-29@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 9FA0F4742F856A810043048C /* AppIcon-29@2x~ipad.png */; };
+		9FA0F48A2F856A810043048C /* AppIcon-40@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 9FA0F4772F856A810043048C /* AppIcon-40@2x.png */; };
+		9FA0F48B2F856A810043048C /* AppIcon-29@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 9FA0F4732F856A810043048C /* AppIcon-29@2x.png */; };
+		9FA0F48C2F856A810043048C /* AppIcon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 9FA0F47E2F856A810043048C /* AppIcon@2x.png */; };
+		9FA0F48D2F856A810043048C /* AppIcon@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 9FA0F4802F856A810043048C /* AppIcon@3x.png */; };
+		9FA0F48E2F856A810043048C /* AppIcon~ios-marketing.png in Resources */ = {isa = PBXBuildFile; fileRef = 9FA0F4812F856A810043048C /* AppIcon~ios-marketing.png */; };
+		9FA0F48F2F856A810043048C /* AppIcon-20@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 9FA0F46F2F856A810043048C /* AppIcon-20@2x~ipad.png */; };
+		9FA0F4902F856A810043048C /* AppIcon-20@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 9FA0F4702F856A810043048C /* AppIcon-20@3x.png */; };
+		9FA0F4912F856A810043048C /* AppIcon-20~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 9FA0F4712F856A810043048C /* AppIcon-20~ipad.png */; };
+		9FA0F4922F856A810043048C /* AppIcon-40@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 9FA0F4792F856A810043048C /* AppIcon-40@3x.png */; };
+		9FA0F4932F856A810043048C /* AppIcon-83.5@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 9FA0F47D2F856A810043048C /* AppIcon-83.5@2x~ipad.png */; };
+		9FA0F4942F856A810043048C /* AppIcon~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 9FA0F4822F856A810043048C /* AppIcon~ipad.png */; };
+		9FA0F4952F856A810043048C /* Contents.json in Resources */ = {isa = PBXBuildFile; fileRef = 9FA0F4832F856A810043048C /* Contents.json */; };
+		9FA0F4962F856A810043048C /* AppIcon-29~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 9FA0F4762F856A810043048C /* AppIcon-29~ipad.png */; };
+		9FA0F4972F856A810043048C /* AppIcon-60@3x~car.png in Resources */ = {isa = PBXBuildFile; fileRef = 9FA0F47C2F856A810043048C /* AppIcon-60@3x~car.png */; };
+		9FA0F4982F856A810043048C /* AppIcon-29@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 9FA0F4752F856A810043048C /* AppIcon-29@3x.png */; };
+		9FA0F4992F856A810043048C /* AppIcon-60@2x~car.png in Resources */ = {isa = PBXBuildFile; fileRef = 9FA0F47B2F856A810043048C /* AppIcon-60@2x~car.png */; };
 		A1A1A1A1000000000000001 /* HealthSyncApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2A2A2A2000000000000001 /* HealthSyncApp.swift */; };
 		A1A1A1A2000000000000001 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2A2A2A2000000000000002 /* KeychainManager.swift */; };
 		A1A1A1A3000000000000001 /* AppContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2A2A2A2000000000000003 /* AppContainer.swift */; };
@@ -47,6 +70,29 @@
 /* Begin PBXFileReference section */
 		9FA0F4662F855F5A0043048C /* HealthSyncShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthSyncShortcuts.swift; sourceTree = "<group>"; };
 		9FA0F4672F855F5A0043048C /* SyncHealthDataIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncHealthDataIntent.swift; sourceTree = "<group>"; };
+		9FA0F46B2F8565E30043048C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		9FA0F46E2F856A810043048C /* AppIcon-20@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon-20@2x.png"; sourceTree = "<group>"; };
+		9FA0F46F2F856A810043048C /* AppIcon-20@2x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon-20@2x~ipad.png"; sourceTree = "<group>"; };
+		9FA0F4702F856A810043048C /* AppIcon-20@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon-20@3x.png"; sourceTree = "<group>"; };
+		9FA0F4712F856A810043048C /* AppIcon-20~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon-20~ipad.png"; sourceTree = "<group>"; };
+		9FA0F4722F856A810043048C /* AppIcon-29.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon-29.png"; sourceTree = "<group>"; };
+		9FA0F4732F856A810043048C /* AppIcon-29@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon-29@2x.png"; sourceTree = "<group>"; };
+		9FA0F4742F856A810043048C /* AppIcon-29@2x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon-29@2x~ipad.png"; sourceTree = "<group>"; };
+		9FA0F4752F856A810043048C /* AppIcon-29@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon-29@3x.png"; sourceTree = "<group>"; };
+		9FA0F4762F856A810043048C /* AppIcon-29~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon-29~ipad.png"; sourceTree = "<group>"; };
+		9FA0F4772F856A810043048C /* AppIcon-40@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon-40@2x.png"; sourceTree = "<group>"; };
+		9FA0F4782F856A810043048C /* AppIcon-40@2x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon-40@2x~ipad.png"; sourceTree = "<group>"; };
+		9FA0F4792F856A810043048C /* AppIcon-40@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon-40@3x.png"; sourceTree = "<group>"; };
+		9FA0F47A2F856A810043048C /* AppIcon-40~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon-40~ipad.png"; sourceTree = "<group>"; };
+		9FA0F47B2F856A810043048C /* AppIcon-60@2x~car.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon-60@2x~car.png"; sourceTree = "<group>"; };
+		9FA0F47C2F856A810043048C /* AppIcon-60@3x~car.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon-60@3x~car.png"; sourceTree = "<group>"; };
+		9FA0F47D2F856A810043048C /* AppIcon-83.5@2x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon-83.5@2x~ipad.png"; sourceTree = "<group>"; };
+		9FA0F47E2F856A810043048C /* AppIcon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon@2x.png"; sourceTree = "<group>"; };
+		9FA0F47F2F856A810043048C /* AppIcon@2x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon@2x~ipad.png"; sourceTree = "<group>"; };
+		9FA0F4802F856A810043048C /* AppIcon@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon@3x.png"; sourceTree = "<group>"; };
+		9FA0F4812F856A810043048C /* AppIcon~ios-marketing.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon~ios-marketing.png"; sourceTree = "<group>"; };
+		9FA0F4822F856A810043048C /* AppIcon~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon~ipad.png"; sourceTree = "<group>"; };
+		9FA0F4832F856A810043048C /* Contents.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Contents.json; sourceTree = "<group>"; };
 		A0000001000000000000001 /* HealthSync.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HealthSync.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A2A2A2A2000000000000001 /* HealthSyncApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthSyncApp.swift; sourceTree = "<group>"; };
 		A2A2A2A2000000000000002 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
@@ -102,6 +148,35 @@
 				9FA0F4672F855F5A0043048C /* SyncHealthDataIntent.swift */,
 			);
 			path = Intents;
+			sourceTree = "<group>";
+		};
+		9FA0F46D2F856A7B0043048C /* appIcons */ = {
+			isa = PBXGroup;
+			children = (
+				9FA0F46E2F856A810043048C /* AppIcon-20@2x.png */,
+				9FA0F46F2F856A810043048C /* AppIcon-20@2x~ipad.png */,
+				9FA0F4702F856A810043048C /* AppIcon-20@3x.png */,
+				9FA0F4712F856A810043048C /* AppIcon-20~ipad.png */,
+				9FA0F4722F856A810043048C /* AppIcon-29.png */,
+				9FA0F4732F856A810043048C /* AppIcon-29@2x.png */,
+				9FA0F4742F856A810043048C /* AppIcon-29@2x~ipad.png */,
+				9FA0F4752F856A810043048C /* AppIcon-29@3x.png */,
+				9FA0F4762F856A810043048C /* AppIcon-29~ipad.png */,
+				9FA0F4772F856A810043048C /* AppIcon-40@2x.png */,
+				9FA0F4782F856A810043048C /* AppIcon-40@2x~ipad.png */,
+				9FA0F4792F856A810043048C /* AppIcon-40@3x.png */,
+				9FA0F47A2F856A810043048C /* AppIcon-40~ipad.png */,
+				9FA0F47B2F856A810043048C /* AppIcon-60@2x~car.png */,
+				9FA0F47C2F856A810043048C /* AppIcon-60@3x~car.png */,
+				9FA0F47D2F856A810043048C /* AppIcon-83.5@2x~ipad.png */,
+				9FA0F47E2F856A810043048C /* AppIcon@2x.png */,
+				9FA0F47F2F856A810043048C /* AppIcon@2x~ipad.png */,
+				9FA0F4802F856A810043048C /* AppIcon@3x.png */,
+				9FA0F4812F856A810043048C /* AppIcon~ios-marketing.png */,
+				9FA0F4822F856A810043048C /* AppIcon~ipad.png */,
+				9FA0F4832F856A810043048C /* Contents.json */,
+			);
+			path = appIcons;
 			sourceTree = "<group>";
 		};
 		A4000001000000000000001 = {
@@ -184,6 +259,8 @@
 		A400000E000000000000001 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				9FA0F46D2F856A7B0043048C /* appIcons */,
+				9FA0F46B2F8565E30043048C /* Assets.xcassets */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -612,7 +689,30 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9FA0F46C2F8565E30043048C /* Assets.xcassets in Resources */,
 				B65190032F77862200AEB8E7 /* Launch Screen.storyboard in Resources */,
+				9FA0F4842F856A810043048C /* AppIcon-40~ipad.png in Resources */,
+				9FA0F4852F856A810043048C /* AppIcon-20@2x.png in Resources */,
+				9FA0F4862F856A810043048C /* AppIcon-40@2x~ipad.png in Resources */,
+				9FA0F4872F856A810043048C /* AppIcon@2x~ipad.png in Resources */,
+				9FA0F4882F856A810043048C /* AppIcon-29.png in Resources */,
+				9FA0F4892F856A810043048C /* AppIcon-29@2x~ipad.png in Resources */,
+				9FA0F48A2F856A810043048C /* AppIcon-40@2x.png in Resources */,
+				9FA0F48B2F856A810043048C /* AppIcon-29@2x.png in Resources */,
+				9FA0F48C2F856A810043048C /* AppIcon@2x.png in Resources */,
+				9FA0F48D2F856A810043048C /* AppIcon@3x.png in Resources */,
+				9FA0F48E2F856A810043048C /* AppIcon~ios-marketing.png in Resources */,
+				9FA0F48F2F856A810043048C /* AppIcon-20@2x~ipad.png in Resources */,
+				9FA0F4902F856A810043048C /* AppIcon-20@3x.png in Resources */,
+				9FA0F4912F856A810043048C /* AppIcon-20~ipad.png in Resources */,
+				9FA0F4922F856A810043048C /* AppIcon-40@3x.png in Resources */,
+				9FA0F4932F856A810043048C /* AppIcon-83.5@2x~ipad.png in Resources */,
+				9FA0F4942F856A810043048C /* AppIcon~ipad.png in Resources */,
+				9FA0F4952F856A810043048C /* Contents.json in Resources */,
+				9FA0F4962F856A810043048C /* AppIcon-29~ipad.png in Resources */,
+				9FA0F4972F856A810043048C /* AppIcon-60@3x~car.png in Resources */,
+				9FA0F4982F856A810043048C /* AppIcon-29@3x.png in Resources */,
+				9FA0F4992F856A810043048C /* AppIcon-60@2x~car.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -786,9 +886,11 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = HealthSync/HealthSync.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 66RDU6GYW6;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = HealthSync/Resources/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -812,9 +914,11 @@
 				CODE_SIGN_ENTITLEMENTS = HealthSync/HealthSync.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 66RDU6GYW6;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = HealthSync/Resources/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

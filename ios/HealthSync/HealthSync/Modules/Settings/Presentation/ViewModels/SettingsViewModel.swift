@@ -12,7 +12,17 @@ final class SettingsViewModel: ObservableObject {
     @Published var authAlertMessage = ""
     @Published var isRequestingAuth = false
 
+    // Dev panel
+    @Published var showDevPanel = false
+    @Published var devURLInput = ""
+    private var versionTapCount = 0
+    private var versionTapTimer: Timer?
+
     var isConnected: Bool { authRepository.hasValidToken() }
+
+    var currentEnvironmentIsLocal: Bool {
+        !Config.serverURL.contains("markmager.cc")
+    }
 
     private let authRepository: AuthRepositoryProtocol
     private let healthRepository: HealthRepositoryProtocol
@@ -31,6 +41,29 @@ final class SettingsViewModel: ObservableObject {
 
     func saveSettings() {
         UserDefaults.standard.set(serverURL, forKey: "serverURL")
+    }
+
+    func handleVersionTap() {
+        versionTapTimer?.invalidate()
+        versionTapCount += 1
+        if versionTapCount >= 5 {
+            versionTapCount = 0
+            devURLInput = Config.serverURL
+            showDevPanel = true
+        } else {
+            versionTapTimer = Timer.scheduledTimer(withTimeInterval: 3, repeats: false) { [weak self] _ in
+                DispatchQueue.main.async { self?.versionTapCount = 0 }
+            }
+        }
+    }
+
+    func applyDevURL() {
+        let trimmed = devURLInput.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return }
+        let changed = trimmed != Config.serverURL
+        UserDefaults.standard.set(trimmed, forKey: "serverURL")
+        showDevPanel = false
+        if changed { logout() }
     }
 
     func logout() {

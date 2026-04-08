@@ -118,6 +118,8 @@ Section {
                     Spacer()
                     Text("1.0.0").foregroundColor(.secondaryText)
                 }
+                .contentShape(Rectangle())
+                .onTapGesture { viewModel.handleVersionTap() }
             } header: {
                 Text("关于")
                     .font(.subheadline)
@@ -139,6 +141,9 @@ Section {
         .scrollContentBackground(.hidden)
         .navigationTitle("设置")
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(isPresented: $viewModel.showDevPanel) {
+            DevServerView(viewModel: viewModel)
+        }
         .alert("退出登录", isPresented: $viewModel.showingLogoutAlert) {
             Button("取消", role: .cancel) {}
             Button("退出", role: .destructive) { viewModel.logout() }

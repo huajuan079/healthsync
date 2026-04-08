@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HealthSync Admin</title>
+  <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; }
+    .nav-bar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      height: 60px; background: #fff; border-bottom: 1px solid #e8e8e8;
+      display: flex; align-items: center; padding: 0 24px;
+      justify-content: space-between;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .nav-title { font-size: 18px; font-weight: 600; color: #409EFF; }
+    .page-content { max-width: 1200px; margin: 0 auto; padding: 80px 24px 24px; }
+    .stat-row { display: flex; gap: 16px; margin-bottom: 20px; }
+    .stat-row .el-card { flex: 1; }
+    .login-wrap { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    .login-card { width: 380px; }
+    .login-title { text-align: center; font-size: 22px; font-weight: 600; color: #303133; margin-bottom: 24px; }
+    .json-pre {
+      background: #1e1e1e; color: #d4d4d4; padding: 16px;
+      border-radius: 4px; font-family: 'Courier New', Consolas, monospace;
+      font-size: 12px; line-height: 1.6; overflow-y: auto;
+      max-height: 600px; white-space: pre; margin: 0;
+    }
+  </style>
+</head>
+<body>
+<div id="app"></div>
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script src="https://unpkg.com/vue-router@4/dist/vue-router.global.prod.js"></script>
+<script src="https://unpkg.com/element-plus/dist/index.full.min.js"></script>
+
+<script>
+const { createApp, ref, reactive, computed, onMounted } = Vue;
+const { createRouter, createWebHashHistory, useRoute, useRouter } = VueRouter;
+const { ElMessage } = ElementPlus;
+
+// Derive API base from current URL so it works in both dev and production
+// e.g. /healthsync/api/health/web/admin → /healthsync/api/health/web/api
+const API_BASE = window.location.pathname.replace(/\/admin\/?$/, '') + '/api';
+
+async function apiFetch(path, options = {}) {
+  const res = await fetch(API_BASE + path, {
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+    ...options,
+  });
+  if (res.status === 401) {
+    router.push('/login');
+    throw new Error('Unauthorized');
+  }
+  return res;
+}
+
+// ── Login Page ─────────────────────────────────────────────────────────────
+const LoginPage = {
+  template: `
+    <div class="login-wrap">
+      <el-card class="login-card">
+        <div class="login-title">🩺 HealthSync Admin</div>
+        <el-form @submit.prevent="handleLogin">
+          <el-form-item>
+            <el-input
+              v-model="password"
+              type="password"
+              placeholder="管理员密码"
+              size="large"
+              show-password
+            />
+          </el-form-item>
+          <el-form-item>
+            <el-button
+              type="primary"
+              native-type="submit"
+              size="large"
+              style="width:100%"
+              :loading="loading"
+            >登录</el-button>
+          </el-form-item>
+        </el-form>
+      </el-card>
+    </div>
+  `,
+  setup() {
+    const router = useRouter();
+    const password = ref('');
+    const loading = ref(false);
+
+    async function handleLogin() {
+      if (!password.value.trim()) return;
+      loading.value = true;
+      try {
+        const res = await fetch(API_BASE + '/login', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: password.value }),
+        });
+        if (res.ok) {
+          router.push('/users');
+        } else {
+          const data = await res.json();
+          ElMessage.error(data.error || '登录失败');
+        }
+      } catch {
+        ElMessage.error('网络错误');
+      } finally {
+        loading.value = false;
+      }
+    }
+
+    return { password, loading, handleLogin };
+  },
+};
+
+// ── App Layout (shared nav bar) ────────────────────────────────────────────
+const AppLayout = {
+  template: `
+    <div>
+      <div class="nav-bar">
+        <span class="nav-title">🩺 HealthSync Admin</span>
+        <el-button size="small" @click="handleLogout">退出</el-button>
+      </div>
+      <div class="page-content">
+        <router-view />
+      </div>
+    </div>
+  `,
+  setup() {
+    const router = useRouter();
+    async function handleLogout() {
+      try {
+        await fetch(API_BASE + '/logout', { method: 'POST', credentials: 'same-origin' });
+      } catch {}
+      router.push('/login');
+    }
+    return { handleLogout };
+  },
+};
+
+// ── User List Page (/users) ────────────────────────────────────────────────
+const UserListPage = {
+  template: `
+    <div>
+      <div class="stat-row">
+        <el-card>
+          <el-statistic title="用户总数" :value="users.length" />
+        </el-card>
+        <el-card>
+          <el-statistic title="总上传批次" :value="totalUploads" />
+        </el-card>
+      </div>
+      <el-card>
+        <el-table
+          :data="users"
+          v-loading="loading"
+          row-key="id"
+          style="width:100%;cursor:pointer"
+          @row-click="goToUser"
+        >
+          <el-table-column prop="username" label="用户名" />
+          <el-table-column prop="totalUploads" label="总上传批次" />
+          <el-table-column label="最后同步时间">
+            <template #default="{ row }">
+              {{ row.lastSyncAt ? new Date(row.lastSyncAt).toLocaleString('zh-CN') : '从未同步' }}
+            </template>
+          </el-table-column>
+          <el-table-column label="状态" width="90">
+            <template #default="{ row }">
+              <el-tag :type="row.isActive ? 'success' : 'danger'" size="small">
+                {{ row.isActive ? '活跃' : '禁用' }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="100">
+            <template #default="{ row }">
+              <el-button size="small" @click.stop="goToUser(row)">查看数据</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-card>
+    </div>
+  `,
+  setup() {
+    const router = useRouter();
+    const users = ref([]);
+    const loading = ref(false);
+    const totalUploads = computed(() =>
+      users.value.reduce((s, u) => s + (u.totalUploads || 0), 0)
+    );
+
+    onMounted(async () => {
+      loading.value = true;
+      try {
+        const res = await apiFetch('/users');
+        const data = await res.json();
+        users.value = data.users;
+      } catch (e) {
+        if (e.message !== 'Unauthorized') ElMessage.error('加载用户列表失败');
+      } finally {
+        loading.value = false;
+      }
+    });
+
+    function goToUser(row) {
+      router.push('/users/' + row.id);
+    }
+
+    return { users, loading, totalUploads, goToUser };
+  },
+};
+
+// ── User Uploads Page (/users/:id) ─────────────────────────────────────────
+const UserUploadsPage = {
+  template: `
+    <div>
+      <el-breadcrumb separator="/" style="margin-bottom:16px">
+        <el-breadcrumb-item :to="{ path: '/users' }">用户列表</el-breadcrumb-item>
+        <el-breadcrumb-item>{{ username }}</el-breadcrumb-item>
+      </el-breadcrumb>
+      <el-card>
+        <el-table
+          :data="uploads"
+          v-loading="loading"
+          row-key="id"
+          style="width:100%"
+          @sort-change="handleSortChange"
+        >
+          <el-table-column prop="date" label="日期" sortable="custom" min-width="110" />
+          <el-table-column label="批次" width="80">
+            <template #default="{ row }">{{ row.batchIndex + 1 }} / {{ row.batchTotal }}</template>
+          </el-table-column>
+          <el-table-column prop="recordCount" label="记录数" sortable="custom" width="90" />
+          <el-table-column prop="fileSize" label="文件大小" sortable="custom" width="110">
+            <template #default="{ row }">{{ (row.fileSize / 1024).toFixed(1) }} KB</template>
+          </el-table-column>
+          <el-table-column label="状态" width="90">
+            <template #default="{ row }">
+              <el-tag :type="statusType(row.status)" size="small">{{ statusLabel(row.status) }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="createdAt" label="上传时间" sortable="custom" min-width="160">
+            <template #default="{ row }">{{ new Date(row.createdAt).toLocaleString('zh-CN') }}</template>
+          </el-table-column>
+          <el-table-column label="操作" width="80">
+            <template #default="{ row }">
+              <el-button size="small" @click="goToUpload(row.id)">详情</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+        <div style="display:flex;justify-content:flex-end;margin-top:16px">
+          <el-pagination
+            v-model:current-page="page"
+            :page-size="20"
+            :total="total"
+            layout="total, prev, pager, next"
+            @current-change="loadData"
+          />
+        </div>
+      </el-card>
+    </div>
+  `,
+  setup() {
+    const route = useRoute();
+    const router = useRouter();
+    const uploads = ref([]);
+    const loading = ref(false);
+    const total = ref(0);
+    const page = ref(1);
+    const sortBy = ref('createdAt');
+    const sortOrder = ref('desc');
+    const username = ref('');
+
+    async function loadData() {
+      loading.value = true;
+      try {
+        const params = new URLSearchParams({
+          page: String(page.value),
+          pageSize: '20',
+          sortBy: sortBy.value,
+          sortOrder: sortOrder.value,
+        });
+        const res = await apiFetch('/users/' + route.params.id + '/uploads?' + params);
+        const data = await res.json();
+        uploads.value = data.data;
+        total.value = data.total;
+        username.value = data.username;
+      } catch (e) {
+        if (e.message !== 'Unauthorized') ElMessage.error('加载上传记录失败');
+      } finally {
+        loading.value = false;
+      }
+    }
+
+    function handleSortChange({ prop, order }) {
+      if (prop) {
+        sortBy.value = prop;
+        sortOrder.value = order === 'ascending' ? 'asc' : 'desc';
+      }
+      page.value = 1;
+      loadData();
+    }
+
+    function goToUpload(id) { router.push('/uploads/' + id); }
+
+    function statusType(s) {
+      return s === 'completed' ? 'success' : s === 'pending' ? 'warning' : 'danger';
+    }
+    function statusLabel(s) {
+      return s === 'completed' ? '完成' : s === 'pending' ? '处理中' : '失败';
+    }
+
+    onMounted(loadData);
+
+    return { uploads, loading, total, page, username, loadData, handleSortChange, goToUpload, statusType, statusLabel };
+  },
+};
+
+// ── Upload Detail Page (/uploads/:id) ─────────────────────────────────────
+const UploadDetailPage = {
+  template: `
+    <div v-if="upload">
+      <el-breadcrumb separator="/" style="margin-bottom:16px">
+        <el-breadcrumb-item :to="{ path: '/users' }">用户列表</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ path: '/users/' + upload.userId }">{{ upload.username }}</el-breadcrumb-item>
+        <el-breadcrumb-item>上传详情</el-breadcrumb-item>
+      </el-breadcrumb>
+
+      <el-card style="margin-bottom:16px">
+        <el-descriptions title="基本信息" :column="2" border>
+          <el-descriptions-item label="记录 ID">
+            <span style="font-family:monospace;font-size:11px">{{ upload.id }}</span>
+          </el-descriptions-item>
+          <el-descriptions-item label="用户">{{ upload.username }}</el-descriptions-item>
+          <el-descriptions-item label="日期">{{ upload.date }}</el-descriptions-item>
+          <el-descriptions-item label="批次">{{ upload.batchIndex + 1 }} / {{ upload.batchTotal }}</el-descriptions-item>
+          <el-descriptions-item label="记录数">{{ upload.recordCount }}</el-descriptions-item>
+          <el-descriptions-item label="文件大小">
+            {{ upload.fileSize }} 字节（{{ (upload.fileSize / 1024).toFixed(2) }} KB）
+          </el-descriptions-item>
+          <el-descriptions-item label="状态">
+            <el-tag :type="statusType(upload.status)">{{ statusLabel(upload.status) }}</el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="校验和">
+            <span style="font-family:monospace;font-size:11px;word-break:break-all">{{ upload.checksum }}</span>
+          </el-descriptions-item>
+          <el-descriptions-item label="上传时间">
+            {{ new Date(upload.createdAt).toLocaleString('zh-CN') }}
+          </el-descriptions-item>
+          <el-descriptions-item v-if="upload.errorMessage" label="错误信息">
+            <span style="color:#f56c6c">{{ upload.errorMessage }}</span>
+          </el-descriptions-item>
+        </el-descriptions>
+      </el-card>
+
+      <el-card>
+        <template #header>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span>健康数据 JSON</span>
+            <el-button v-if="upload.fileContent" size="small" @click="jsonExpanded = !jsonExpanded">
+              {{ jsonExpanded ? '收起' : '展开' }}
+            </el-button>
+          </div>
+        </template>
+        <div v-if="!upload.fileContent" style="color:#909399;padding:20px;text-align:center">
+          文件已归档或不存在
+        </div>
+        <div v-else-if="!jsonExpanded" style="color:#909399;font-size:13px;padding:4px 0">
+          点击「展开」查看完整 JSON 数据（{{ upload.fileSize }} 字节）
+        </div>
+        <pre v-else class="json-pre">{{ formattedJson }}</pre>
+      </el-card>
+    </div>
+    <div v-else-if="loading" style="padding:40px;text-align:center">
+      <el-text type="info">加载中...</el-text>
+    </div>
+    <el-empty v-else description="记录不存在" />
+  `,
+  setup() {
+    const route = useRoute();
+    const upload = ref(null);
+    const loading = ref(false);
+    const jsonExpanded = ref(false);
+
+    const formattedJson = computed(() => {
+      if (!upload.value?.fileContent) return '';
+      try {
+        return JSON.stringify(JSON.parse(upload.value.fileContent), null, 2);
+      } catch {
+        return upload.value.fileContent;
+      }
+    });
+
+    function statusType(s) {
+      return s === 'completed' ? 'success' : s === 'pending' ? 'warning' : 'danger';
+    }
+    function statusLabel(s) {
+      return s === 'completed' ? '完成' : s === 'pending' ? '处理中' : '失败';
+    }
+
+    onMounted(async () => {
+      loading.value = true;
+      try {
+        const res = await apiFetch('/uploads/' + route.params.id);
+        upload.value = await res.json();
+      } catch (e) {
+        if (e.message !== 'Unauthorized') ElMessage.error('加载详情失败');
+      } finally {
+        loading.value = false;
+      }
+    });
+
+    return { upload, loading, jsonExpanded, formattedJson, statusType, statusLabel };
+  },
+};
+
+// ── Router ─────────────────────────────────────────────────────────────────
+const routes = [
+  { path: '/', redirect: '/users' },
+  { path: '/login', component: LoginPage },
+  {
+    path: '/',
+    component: AppLayout,
+    children: [
+      { path: 'users',          component: UserListPage },
+      { path: 'users/:id',      component: UserUploadsPage },
+      { path: 'uploads/:id',    component: UploadDetailPage },
+    ],
+  },
+];
+
+const router = createRouter({
+  history: createWebHashHistory(),
+  routes,
+});
+
+// Redirect unauthenticated users: handled by apiFetch returning 401 → push('/login')
+
+// ── Mount ──────────────────────────────────────────────────────────────────
+const app = createApp({ template: '<router-view />' });
+app.use(router);
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+</body>
+</html>

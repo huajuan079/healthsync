@@ -24,11 +24,11 @@ struct LoadingOverlay: ViewModifier {
             content
 
             if isLoading {
-                Color.black.opacity(0.6)
+                Color.primary.opacity(0.5)
                     .ignoresSafeArea()
 
                 ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    .progressViewStyle(CircularProgressViewStyle(tint: .appAccent))
                     .scaleEffect(1.5)
             }
         }

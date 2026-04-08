@@ -109,7 +109,7 @@ struct StatusCard: View {
                                 .foregroundColor(.text)
                         }
                     } else if let t = lastSyncTime {
-                        Text("上次同步: \(t, style: .relative)")
+                        Text("上次同步: \(t.formatted(date: .omitted, time: .shortened))")
                             .foregroundColor(.text)
                     } else {
                         Text("点击同步今日数据")
@@ -159,7 +159,12 @@ struct TodayHealthCard: View {
                 HealthMetricCard(
                     icon: "bed.double.fill",
                     title: "睡眠",
-                    value: "--",
+                    value: {
+                        guard let d = summary?.sleepDuration else { return "--" }
+                        let h = Int(d) / 3600
+                        let m = (Int(d) % 3600) / 60
+                        return m > 0 ? "\(h)h\(m)m" : "\(h)h"
+                    }(),
                     unit: "",
                     color: .sleepColor
                 )
@@ -180,21 +185,14 @@ struct HealthMetricCard: View {
     let color: Color
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 6) {
             Image(systemName: icon)
                 .font(.title2)
                 .foregroundColor(color)
 
-            VStack(spacing: 2) {
-                Text(value)
-                    .font(.headline)
-                    .foregroundColor(.text)
-                if !unit.isEmpty {
-                    Text(unit)
-                        .font(.caption2)
-                        .foregroundColor(.secondaryText)
-                }
-            }
+            Text(value)
+                .font(.headline)
+                .foregroundColor(.text)
 
             Text(title)
                 .font(.caption)
@@ -202,8 +200,6 @@ struct HealthMetricCard: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 12)
-        .background(Color.tertiaryBackground)
-        .cornerRadius(10)
     }
 }
 
@@ -286,8 +282,6 @@ struct SyncOptionButton: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(Color.tertiaryBackground.opacity(0.5))
-            .cornerRadius(10)
         }
         .disabled(isDisabled)
     }

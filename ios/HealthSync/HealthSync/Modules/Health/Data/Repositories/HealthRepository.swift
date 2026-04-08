@@ -151,12 +151,22 @@ final class HealthRepository: HealthRepositoryProtocol {
         let restingHRData = await restingHR
         let sleepData = await sleep
 
-        let totalSleepDuration = sleepData.reduce(0.0) { sum, item in
-            if item.type == .asleep || item.type == .asleepCore || item.type == .asleepDeep || item.type == .asleepREM {
-                return sum + item.duration
+        // Merge overlapping intervals from multiple sources before summing,
+        // otherwise Watch + iPhone samples for the same period get double-counted.
+        let actualSleep = sleepData.filter {
+            $0.type == .asleep || $0.type == .asleepCore ||
+            $0.type == .asleepDeep || $0.type == .asleepREM
+        }.sorted { $0.startDate < $1.startDate }
+
+        var merged: [(start: Date, end: Date)] = []
+        for sample in actualSleep {
+            if var last = merged.last, sample.startDate < last.end {
+                merged[merged.count - 1].end = max(last.end, sample.endDate)
+            } else {
+                merged.append((sample.startDate, sample.endDate))
             }
-            return sum
         }
+        let totalSleepDuration = merged.reduce(0.0) { $0 + $1.end.timeIntervalSince($1.start) }
 
         return TodayHealthSummary(
             steps: stepsData?.value ?? 0,

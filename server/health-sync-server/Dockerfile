@@ -29,6 +29,9 @@ RUN npx prisma generate
 # Copy compiled JS from builder
 COPY --from=builder /app/dist ./dist
 
+# Copy static admin web files
+COPY --from=builder /app/public ./public
+
 # Create persistent data directories
 RUN mkdir -p /app/data /app/storage/health_data
 

@@ -74,9 +74,9 @@ export class AdminWebController {
       res.status(401).json({ error: '密码错误' });
       return;
     }
-    const passwordBuf = Buffer.from(password);
-    const adminBuf = Buffer.from(adminPassword);
-    if (passwordBuf.length !== adminBuf.length || !timingSafeEqual(passwordBuf, adminBuf)) {
+    const expected = createHmac('sha256', COOKIE_NAME).update(adminPassword).digest();
+    const actual = createHmac('sha256', COOKIE_NAME).update(password).digest();
+    if (!timingSafeEqual(actual, expected)) {
       res.status(401).json({ error: '密码错误' });
       return;
     }

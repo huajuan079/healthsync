@@ -97,7 +97,7 @@ final class SettingsViewModel: ObservableObject {
     }
 
     private func loadSettings() {
-        serverURL = UserDefaults.standard.string(forKey: "serverURL") ?? "http://localhost:3000"
+        serverURL = UserDefaults.standard.string(forKey: "serverURL") ?? Config.defaultServerURL
         autoSyncEnabled = UserDefaultsManager.shared.autoSyncEnabled
         syncHour = UserDefaultsManager.shared.syncHour
     }

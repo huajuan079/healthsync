@@ -66,14 +66,18 @@ extension AppContainer: AuthTokenProvider {
 }
 
 enum Config {
-    private static var cachedServerURL: String?
+    /// Debug build 默认连接本地 Mac，Release build 默认连接生产服务器
+    /// 修改 DEBUG 分支的 IP 为你 Mac 的局域网 IP（用 ifconfig 查看）
+    static let defaultServerURL: String = {
+        #if DEBUG
+        return "http://192.168.124.81:3000"
+        #else
+        return "https://markmager.cc/healthsync"
+        #endif
+    }()
 
+    /// UserDefaults 中有覆盖值时使用覆盖值，否则用 defaultServerURL
     static var serverURL: String {
-        if let cached = cachedServerURL {
-            return cached
-        }
-        let value = UserDefaults.standard.string(forKey: "serverURL") ?? "https://markmager.cc/healthsync"
-        cachedServerURL = value
-        return value
+        UserDefaults.standard.string(forKey: "serverURL") ?? defaultServerURL
     }
 }

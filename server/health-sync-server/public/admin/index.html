@@ -45,6 +45,7 @@ const { ElMessage } = ElementPlus;
 // Derive API base from current URL so it works in both dev and production
 // e.g. /healthsync/api/health/web/admin → /healthsync/api/health/web/api
 const API_BASE = window.location.pathname.replace(/\/admin\/?$/, '') + '/api';
+let router; // declared early so apiFetch closure can reference it safely
 
 async function apiFetch(path, options = {}) {
   const res = await fetch(API_BASE + path, {
@@ -303,6 +304,9 @@ const UserUploadsPage = {
       if (prop) {
         sortBy.value = prop;
         sortOrder.value = order === 'ascending' ? 'asc' : 'desc';
+      } else {
+        sortBy.value = 'createdAt';
+        sortOrder.value = 'desc';
       }
       page.value = 1;
       loadData();
@@ -436,7 +440,7 @@ const routes = [
   },
 ];
 
-const router = createRouter({
+router = createRouter({
   history: createWebHashHistory(),
   routes,
 });

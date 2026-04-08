@@ -84,6 +84,7 @@ export class AdminWebController {
     res.cookie(COOKIE_NAME, token, {
       httpOnly: true,
       sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production',
       maxAge: COOKIE_MAX_AGE_MS,
       path: '/',
     });

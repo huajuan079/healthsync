@@ -1,5 +1,10 @@
 import dotenv from 'dotenv';
 
+// 本地开发优先加载 .env.development.local，回退到 .env
+// dotenv.config 不会覆盖已经加载的值，所以顺序很重要
+if (process.env.NODE_ENV === 'development') {
+  dotenv.config({ path: '.env.development.local' });
+}
 dotenv.config();
 
 export const config = {

@@ -4,7 +4,7 @@ import HealthKit
 
 @MainActor
 final class SettingsViewModel: ObservableObject {
-    @Published var serverURL: String = "http://localhost:3000"
+    @Published var serverURL: String = Config.defaultServerURL
     @Published var autoSyncEnabled: Bool = false
     @Published var syncHour: Int = 10
     @Published var showingLogoutAlert = false

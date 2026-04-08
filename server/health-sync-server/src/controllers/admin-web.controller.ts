@@ -3,6 +3,7 @@ import { createHmac, timingSafeEqual } from 'crypto';
 import path from 'path';
 import { prisma } from '../models/prisma';
 import { createLogger } from '../utils/logger';
+import { StorageService } from '../services/storage.service.js';
 
 const logger = createLogger('AdminWebController');
 
@@ -23,11 +24,15 @@ function verifyToken(token: string, secret: string): boolean {
     const hmac = decoded.slice(dotIdx + 1);
     const timestamp = parseInt(tsStr, 10);
     if (isNaN(timestamp) || Date.now() - timestamp > COOKIE_MAX_AGE_MS) return false;
-    const expected = createHmac('sha256', secret).update(tsStr).digest('hex');
-    const a = Buffer.from(hmac.padEnd(expected.length));
-    const b = Buffer.from(expected);
-    if (a.length !== b.length) return false;
-    return timingSafeEqual(a, b);
+    const expectedBuf = createHmac('sha256', secret).update(tsStr).digest();
+    let hmacBuf: Buffer;
+    try {
+      hmacBuf = Buffer.from(hmac, 'hex');
+    } catch {
+      return false;
+    }
+    if (hmacBuf.length !== expectedBuf.length) return false;
+    return timingSafeEqual(hmacBuf, expectedBuf);
   } catch {
     return false;
   }
@@ -65,7 +70,13 @@ export class AdminWebController {
       res.status(500).json({ error: 'ADMIN_WEB_PASSWORD not configured' });
       return;
     }
-    if (!password || password !== adminPassword) {
+    if (!password) {
+      res.status(401).json({ error: '密码错误' });
+      return;
+    }
+    const passwordBuf = Buffer.from(password);
+    const adminBuf = Buffer.from(adminPassword);
+    if (passwordBuf.length !== adminBuf.length || !timingSafeEqual(passwordBuf, adminBuf)) {
       res.status(401).json({ error: '密码错误' });
       return;
     }
@@ -158,7 +169,6 @@ export class AdminWebController {
 
       let fileContent: string | null = null;
       try {
-        const { StorageService } = await import('../services/storage.service.js');
         const storage = new StorageService();
         fileContent = await storage.readPlaintextData(upload.user.username, upload.date);
       } catch {

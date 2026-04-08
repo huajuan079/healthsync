@@ -31,7 +31,7 @@ struct HomeView: View {
             .padding()
             .padding(.bottom, 100) // Extra space for tab bar
         }
-        .background(Color.background)
+        .background(AmbientBackground())
         .safeAreaInset(edge: .bottom) {
             Color.clear.frame(height: 0)
         }
@@ -292,13 +292,38 @@ struct TodayWorkoutCard: View {
                 .font(.headline)
                 .foregroundColor(.text)
 
-            WorkoutStatsCard(
-                totalWorkouts: workouts.count,
-                totalDuration: totalDuration,
-                totalCalories: totalCalories
-            )
+            HStack(spacing: 20) {
+                HealthMetricCard(
+                    icon: "figure.run",
+                    title: "运动",
+                    value: "\(workouts.count)",
+                    unit: "次",
+                    color: .energyColor
+                )
+                HealthMetricCard(
+                    icon: "clock",
+                    title: "时长",
+                    value: formatDuration(totalDuration),
+                    unit: "",
+                    color: .appAccent
+                )
+                HealthMetricCard(
+                    icon: "flame.fill",
+                    title: "卡路里",
+                    value: "\(Int(totalCalories))",
+                    unit: "千卡",
+                    color: .heartRateColor
+                )
+            }
         }
         .padding()
         .cardStyle()
+    }
+
+    private func formatDuration(_ duration: TimeInterval) -> String {
+        let hours = Int(duration) / 3600
+        let minutes = Int(duration) % 3600 / 60
+        if hours > 0 { return "\(hours)h\(minutes)m" }
+        return "\(minutes)m"
     }
 }

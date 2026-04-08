@@ -12,15 +12,18 @@ struct SettingsView: View {
     }
 
     var body: some View {
-        List {
-            accountSection
-            syncSection
-            healthPermissionSection
-            aboutSection
-            logoutSection
+        ZStack {
+            AmbientBackground()
+            List {
+                accountSection
+                syncSection
+                healthPermissionSection
+                aboutSection
+                logoutSection
+            }
+            .scrollContentBackground(.hidden)
+            .background(Color.clear)
         }
-        .background(Color.background)
-        .scrollContentBackground(.hidden)
         .navigationTitle("设置")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $viewModel.showDevPanel) {
@@ -54,7 +57,7 @@ struct SettingsView: View {
         } header: {
             Text("账户").font(.subheadline).foregroundColor(.secondaryText).textCase(.none)
         }
-        .listRowBackground(Color.secondaryBackground)
+        .listRowBackground(Rectangle().fill(.ultraThinMaterial))
     }
 
     private var syncSection: some View {
@@ -78,7 +81,7 @@ struct SettingsView: View {
                     .foregroundColor(.tertiaryText)
             }
         }
-        .listRowBackground(Color.secondaryBackground)
+        .listRowBackground(Rectangle().fill(.ultraThinMaterial))
     }
 
     private var healthPermissionSection: some View {
@@ -114,7 +117,7 @@ struct SettingsView: View {
             Text("💡 如果之前拒绝了授权，系统不会再次弹窗。请点击「打开健康设置」手动开启权限。")
                 .foregroundColor(.tertiaryText)
         }
-        .listRowBackground(Color.secondaryBackground)
+        .listRowBackground(Rectangle().fill(.ultraThinMaterial))
     }
 
     private var aboutSection: some View {
@@ -129,7 +132,7 @@ struct SettingsView: View {
         } header: {
             Text("关于").font(.subheadline).foregroundColor(.secondaryText).textCase(.none)
         }
-        .listRowBackground(Color.secondaryBackground)
+        .listRowBackground(Rectangle().fill(.ultraThinMaterial))
     }
 
     private var logoutSection: some View {
@@ -140,7 +143,7 @@ struct SettingsView: View {
                 HStack { Spacer(); Text("退出登录"); Spacer() }
             }
         } header: { EmptyView() }
-        .listRowBackground(Color.secondaryBackground)
+        .listRowBackground(Rectangle().fill(.ultraThinMaterial))
     }
 }
 

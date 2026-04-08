@@ -11,7 +11,7 @@ struct HealthDetailView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.background.ignoresSafeArea()
+                AmbientBackground()
 
                 if viewModel.isLoading && viewModel.healthData == nil {
                     ProgressView()
@@ -94,8 +94,10 @@ struct DateSelectorView: View {
             .disabled(!canSelectNextDay)
         }
         .padding()
-        .background(Color.secondaryBackground)
-        .cornerRadius(12)
+        .background(.ultraThinMaterial)
+        .cornerRadius(16)
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.15), lineWidth: 1))
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
     }
 }
 
@@ -249,8 +251,10 @@ struct StepsMetricCard: View {
             Spacer()
         }
         .padding()
-        .background(Color.secondaryBackground)
-        .cornerRadius(12)
+        .background(.ultraThinMaterial)
+        .cornerRadius(16)
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.15), lineWidth: 1))
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
     }
 }
 
@@ -287,8 +291,10 @@ struct RestingHeartRateCard: View {
             Spacer()
         }
         .padding()
-        .background(Color.secondaryBackground)
-        .cornerRadius(12)
+        .background(.ultraThinMaterial)
+        .cornerRadius(16)
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.15), lineWidth: 1))
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
     }
 }
 
@@ -325,8 +331,10 @@ struct WeightMetricCard: View {
             Spacer()
         }
         .padding()
-        .background(Color.secondaryBackground)
-        .cornerRadius(12)
+        .background(.ultraThinMaterial)
+        .cornerRadius(16)
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.15), lineWidth: 1))
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
     }
 }
 
@@ -376,8 +384,10 @@ struct HeartRateDetailCard: View {
             }
         }
         .padding()
-        .background(Color.secondaryBackground)
-        .cornerRadius(12)
+        .background(.ultraThinMaterial)
+        .cornerRadius(16)
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.15), lineWidth: 1))
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
     }
 
     var averageHeartRate: Double? {
@@ -433,8 +443,10 @@ struct HRVDetailCard: View {
             }
         }
         .padding()
-        .background(Color.secondaryBackground)
-        .cornerRadius(12)
+        .background(.ultraThinMaterial)
+        .cornerRadius(16)
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.15), lineWidth: 1))
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
     }
 
     var averageHRV: Double? {
@@ -482,8 +494,10 @@ struct SleepDetailCard: View {
             }
         }
         .padding()
-        .background(Color.secondaryBackground)
-        .cornerRadius(12)
+        .background(.ultraThinMaterial)
+        .cornerRadius(16)
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.15), lineWidth: 1))
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
     }
 
     var totalSleepDuration: String? {
@@ -562,8 +576,10 @@ struct WorkoutListCard: View {
             }
         }
         .padding()
-        .background(Color.secondaryBackground)
-        .cornerRadius(12)
+        .background(.ultraThinMaterial)
+        .cornerRadius(16)
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.15), lineWidth: 1))
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
     }
 }
 
@@ -674,8 +690,10 @@ struct BloodOxygenCard: View {
             }
         }
         .padding()
-        .background(Color.secondaryBackground)
-        .cornerRadius(12)
+        .background(.ultraThinMaterial)
+        .cornerRadius(16)
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.15), lineWidth: 1))
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
     }
 
     var averageOxygen: Double? {
@@ -721,8 +739,10 @@ struct MenstrualDataCard: View {
             }
         }
         .padding()
-        .background(Color.secondaryBackground)
-        .cornerRadius(12)
+        .background(.ultraThinMaterial)
+        .cornerRadius(16)
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.15), lineWidth: 1))
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
     }
 
     func formatFlowLevel(_ level: MenstrualData.FlowLevel?) -> String {
@@ -788,8 +808,10 @@ struct WristTemperatureCard: View {
             }
         }
         .padding()
-        .background(Color.secondaryBackground)
-        .cornerRadius(12)
+        .background(.ultraThinMaterial)
+        .cornerRadius(16)
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.15), lineWidth: 1))
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
     }
 
     var averageTemperature: Double? {
@@ -845,8 +867,10 @@ struct RespiratoryRateCard: View {
             }
         }
         .padding()
-        .background(Color.secondaryBackground)
-        .cornerRadius(12)
+        .background(.ultraThinMaterial)
+        .cornerRadius(16)
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.15), lineWidth: 1))
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
     }
 
     var averageRate: Double? {
@@ -902,8 +926,10 @@ struct BodyTemperatureCard: View {
             }
         }
         .padding()
-        .background(Color.secondaryBackground)
-        .cornerRadius(12)
+        .background(.ultraThinMaterial)
+        .cornerRadius(16)
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.15), lineWidth: 1))
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
     }
 
     var averageTemperature: Double? {
@@ -953,8 +979,10 @@ struct BloodPressureCard: View {
             }
         }
         .padding()
-        .background(Color.secondaryBackground)
-        .cornerRadius(12)
+        .background(.ultraThinMaterial)
+        .cornerRadius(16)
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.15), lineWidth: 1))
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
     }
 }
 

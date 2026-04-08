@@ -14,7 +14,7 @@ struct WorkoutDetailView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.background.ignoresSafeArea()
+                AmbientBackground()
 
                 if viewModel.isLoading && viewModel.workouts.isEmpty {
                     ProgressView()
@@ -129,8 +129,10 @@ struct WorkoutStatsCard: View {
             )
         }
         .padding()
-        .background(Color.secondaryBackground)
-        .cornerRadius(12)
+        .background(.ultraThinMaterial)
+        .cornerRadius(16)
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.15), lineWidth: 1))
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
     }
 
     private func formatDuration(_ duration: TimeInterval) -> String {
@@ -227,8 +229,10 @@ struct WorkoutDetailCard: View {
             }
         }
         .padding()
-        .background(Color.secondaryBackground)
-        .cornerRadius(12)
+        .background(.ultraThinMaterial)
+        .cornerRadius(16)
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.15), lineWidth: 1))
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
     }
 
     var workoutIcon: String {

@@ -57,7 +57,7 @@ extension Color {
 
     // MARK: Semantic / Status
 
-    static let appAccent     = Color(red: 0.0, green: 0.7,  blue: 0.9)
+    static let appAccent     = Color(red: 1.0, green: 0.408, blue: 0.165)
     static let success       = Color(red: 0.2, green: 0.78, blue: 0.35)
     static let warning       = Color(red: 0.9, green: 0.6,  blue: 0.0)
     static let error         = Color(red: 0.9, green: 0.3,  blue: 0.3)
@@ -70,13 +70,44 @@ extension Color {
     static let energyColor    = Color(red: 0.95, green: 0.60, blue: 0.20)
 }
 
-// MARK: - Card Style
+// MARK: - Ambient Glass Background
+
+struct AmbientBackground: View {
+    var body: some View {
+        ZStack {
+            Color.background.ignoresSafeArea()
+            Circle()
+                .fill(Color.appAccent.opacity(0.25))
+                .frame(width: 320, height: 320)
+                .blur(radius: 80)
+                .offset(x: -80, y: -200)
+            Circle()
+                .fill(Color(red: 0.4, green: 0.3, blue: 1.0).opacity(0.15))
+                .frame(width: 280, height: 280)
+                .blur(radius: 80)
+                .offset(x: 120, y: 100)
+            Circle()
+                .fill(Color(red: 1.0, green: 0.6, blue: 0.2).opacity(0.12))
+                .frame(width: 240, height: 240)
+                .blur(radius: 70)
+                .offset(x: -60, y: 400)
+        }
+        .ignoresSafeArea()
+    }
+}
+
+// MARK: - Card Style (Liquid Glass)
 
 struct CardStyle: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .background(Color.secondaryBackground)
-            .cornerRadius(12)
+            .background(.ultraThinMaterial)
+            .cornerRadius(16)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color.white.opacity(0.15), lineWidth: 1)
+            )
+            .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
     }
 }
 

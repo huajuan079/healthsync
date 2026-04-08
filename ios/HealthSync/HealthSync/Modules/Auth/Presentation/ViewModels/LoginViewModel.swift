@@ -30,7 +30,7 @@ final class LoginViewModel: ObservableObject {
             NotificationCenter.default.post(name: .didLogin, object: nil)
         } catch {
             isLoading = false
-            errorMessage = (error as? AuthError)?.errorDescription ?? error.localizedDescription
+            errorMessage = LoginViewModel.friendlyMessage(for: error)
         }
     }
 
@@ -41,5 +41,22 @@ final class LoginViewModel: ObservableObject {
 
     var isFormValid: Bool {
         !username.isEmpty && !password.isEmpty && !isLoading
+    }
+
+    private static func friendlyMessage(for error: Error) -> String {
+        if let authError = error as? AuthError {
+            return authError.errorDescription ?? error.localizedDescription
+        }
+        let code = (error as NSError).code
+        switch code {
+        case NSURLErrorTimedOut:
+            return "连接超时，请检查网络或服务器地址"
+        case NSURLErrorCannotConnectToHost, NSURLErrorNetworkConnectionLost:
+            return "无法连接服务器，请检查网络"
+        case NSURLErrorNotConnectedToInternet:
+            return "当前无网络连接"
+        default:
+            return error.localizedDescription
+        }
     }
 }

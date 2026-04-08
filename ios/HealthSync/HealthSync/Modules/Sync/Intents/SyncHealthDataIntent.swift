@@ -16,7 +16,7 @@ struct SyncTodayIntent: AppIntent {
 
         // 检查是否已登录
         guard container.getAccessToken() != nil else {
-            return .result(dialog: "请先在 HealthSync App 中登录")
+            return .result(dialog: "请先在小炎健康助手中登录")
         }
 
         // 请求 HealthKit 授权（已授权时会直接返回）

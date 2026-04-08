@@ -55,11 +55,11 @@ struct HeaderView: View {
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text("健康同步")
+                Text("小炎健康助手")
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(.text)
-                Text("小炎健康助手")
+                Text("健康数据同步")
                     .font(.caption)
                     .foregroundColor(.secondaryText)
             }

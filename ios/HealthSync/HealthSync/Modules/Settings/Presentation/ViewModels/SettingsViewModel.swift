@@ -79,7 +79,7 @@ final class SettingsViewModel: ObservableObject {
             if isAuthorized {
                 authAlertMessage = "✅ 所有健康数据权限已授予！\n\n您现在可以正常同步健康数据了。"
             } else {
-                authAlertMessage = "⚠️ 部分健康数据权限未授予\n\n由于 iOS 系统限制，App 无法再次弹出授权窗口。\n\n请手动开启：\n1. 打开 iPhone「设置」→「健康」\n2. 点击「数据访问与设备」→「HealthSync」\n3. 开启所有数据类型的开关\n\n或点击「打开健康设置」直接打开健康 App"
+                authAlertMessage = "⚠️ 部分健康数据权限未授予\n\n由于 iOS 系统限制，App 无法再次弹出授权窗口。\n\n请手动开启：\n1. 打开 iPhone「设置」→「健康」\n2. 点击「数据访问与设备」→「小炎健康助手」\n3. 开启所有数据类型的开关\n\n或点击「打开健康设置」直接打开健康 App"
             }
             showingAuthAlert = true
         }
@@ -101,7 +101,7 @@ final class SettingsViewModel: ObservableObject {
             if isAuthorized {
                 authAlertMessage = "✅ 健康数据授权成功！\n\n现在可以同步您的健康数据了。"
             } else {
-                authAlertMessage = "⚠️ 部分健康数据权限未授予\n\n由于 iOS 系统限制，如果之前拒绝了授权，系统不会再次弹出授权窗口。\n\n请手动开启权限：\n1. 打开 iPhone「设置」→「健康」\n2. 点击「数据访问与设备」→「HealthSync」\n3. 开启所有数据类型的开关\n\n或点击下方「打开健康设置」按钮"
+                authAlertMessage = "⚠️ 部分健康数据权限未授予\n\n由于 iOS 系统限制，如果之前拒绝了授权，系统不会再次弹出授权窗口。\n\n请手动开启权限：\n1. 打开 iPhone「设置」→「健康」\n2. 点击「数据访问与设备」→「小炎健康助手」\n3. 开启所有数据类型的开关\n\n或点击下方「打开健康设置」按钮"
             }
         } catch {
             print("[SettingsViewModel] Authorization error: \(error)")

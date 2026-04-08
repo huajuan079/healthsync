@@ -16,7 +16,7 @@ struct LoginView: View {
                 Spacer()
                 VStack(spacing: 12) {
                     Image(systemName: "heart.fill").font(.system(size: 60)).foregroundColor(Color.appAccent)
-                    Text("健康数据同步").font(.title).fontWeight(.bold).foregroundColor(.text)
+                    Text("小炎健康助手").font(.title).fontWeight(.bold).foregroundColor(.text)
                     Text("安全同步您的健康数据").font(.subheadline).foregroundColor(.secondaryText)
                 }
                 Spacer()
@@ -24,8 +24,36 @@ struct LoginView: View {
                 Spacer()
                 Text("v1.0.0").font(.caption).foregroundColor(.tertiaryText)
             }.padding()
+
+            if let message = viewModel.errorMessage {
+                HStack(spacing: 10) {
+                    Image(systemName: "exclamationmark.circle.fill")
+                        .foregroundColor(.white)
+                    Text(message)
+                        .font(.subheadline)
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.leading)
+                    Spacer()
+                }
+                .padding()
+                .background(Color.black.opacity(0.85))
+                .cornerRadius(12)
+                .padding(.horizontal, 24)
+                .transition(
+                    .asymmetric(
+                        insertion: .opacity.combined(with: .scale(scale: 0.92)).animation(.easeOut(duration: 0.25)),
+                        removal: .opacity.animation(.easeIn(duration: 0.2))
+                    )
+                )
+            }
         }
         .task { viewModel.warmUpConnection() }
+        .onChange(of: viewModel.errorMessage) { msg in
+            guard msg != nil else { return }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                withAnimation { viewModel.errorMessage = nil }
+            }
+        }
     }
 }
 

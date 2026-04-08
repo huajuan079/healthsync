@@ -147,7 +147,7 @@ export class HealthController {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HealthSync - 上传记录</title>
+  <title>小炎健康助手 - 上传记录</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -231,7 +231,7 @@ export class HealthController {
 </head>
 <body>
   <div class="container">
-    <h1>🩺 HealthSync 上传记录</h1>
+    <h1>🩺 小炎健康助手 上传记录</h1>
 
     <div class="stats">
       <div class="stat-card">
@@ -334,7 +334,7 @@ export class HealthController {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HealthSync - 上传详情</title>
+  <title>小炎健康助手 - 上传详情</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {

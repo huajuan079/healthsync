@@ -7,7 +7,7 @@
 		<string>com.openclaw.HealthSync.background-sync</string>
 	</array>
 	<key>CFBundleDisplayName</key>
-	<string>健康同步</string>
+	<string>小炎健康助手</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleGetInfoString</key>

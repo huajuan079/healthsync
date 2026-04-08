@@ -12,6 +12,8 @@ final class SettingsViewModel: ObservableObject {
     @Published var authAlertMessage = ""
     @Published var isRequestingAuth = false
 
+    var isConnected: Bool { authRepository.hasValidToken() }
+
     private let authRepository: AuthRepositoryProtocol
     private let healthRepository: HealthRepositoryProtocol
     var onLogout: (() -> Void)?

@@ -42,6 +42,19 @@ struct HealthDetailView: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 40)
+                    .onEnded { value in
+                        let h = abs(value.translation.width)
+                        let v = abs(value.translation.height)
+                        guard h > v, h > 60 else { return }
+                        if value.translation.width < 0, viewModel.canSelectNextDay {
+                            viewModel.changeDay(by: 1)
+                        } else if value.translation.width > 0 {
+                            viewModel.changeDay(by: -1)
+                        }
+                    }
+            )
         }
         .onAppear {
             if viewModel.healthData == nil {

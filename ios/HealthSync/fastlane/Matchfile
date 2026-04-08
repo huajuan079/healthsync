@@ -1,0 +1,4 @@
+git_url("git@github.com:devilsen/ios-match.git")
+storage_mode("git")
+type("appstore")
+app_identifier(["com.sam.HealthSync"])

@@ -1,0 +1,61 @@
+default_platform(:ios)
+
+platform :ios do
+  # ── 私有方法：加载 App Store Connect API Key ──────────────────────────────
+  def load_api_key
+    app_store_connect_api_key(
+      key_id:      "6NRBKC9V6S",
+      issuer_id:   "7913b008-efc7-409b-86cd-e1eb950a3529",
+      key_filepath: File.expand_path("../AuthKey_6NRBKC9V6S.p8", __dir__)
+    )
+  end
+
+  # ── 同步证书和 Provisioning Profile ──────────────────────────────────────
+  desc "Sync certificates and provisioning profiles via match"
+  lane :sync_certs do
+    match(
+      type:    "appstore",
+      api_key: load_api_key
+    )
+  end
+
+  # ── 构建并上传到 TestFlight ───────────────────────────────────────────────
+  desc "Build and upload to TestFlight"
+  lane :beta do
+    api_key = load_api_key
+
+    # 只读模式同步证书（CI 环境不重新生成）
+    match(
+      type:     "appstore",
+      api_key:  api_key,
+      readonly: true
+    )
+
+    # 自动递增 build number（基于 TestFlight 最新版本 +1）
+    increment_build_number(
+      build_number:  latest_testflight_build_number(
+                       api_key:        api_key,
+                       app_identifier: "com.sam.HealthSync"
+                     ) + 1,
+      xcodeproj: "HealthSync.xcodeproj"
+    )
+
+    # 构建
+    build_app(
+      project:       "HealthSync.xcodeproj",
+      scheme:        "HealthSync",
+      export_method: "app-store",
+      export_options: {
+        provisioningProfiles: {
+          "com.sam.HealthSync" => "match AppStore com.sam.HealthSync"
+        }
+      }
+    )
+
+    # 上传（跳过等待 Apple 处理，加快流程）
+    upload_to_testflight(
+      api_key:                          api_key,
+      skip_waiting_for_build_processing: true
+    )
+  end
+end

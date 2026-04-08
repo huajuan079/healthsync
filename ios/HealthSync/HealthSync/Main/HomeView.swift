@@ -11,13 +11,14 @@ struct HomeView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
-                HeaderView(isConnected: viewModel.isConnected)
+                HeaderView()
                 StatusCard(
                     lastSyncTime: viewModel.lastSyncTime,
                     isSyncing: viewModel.isSyncing,
                     onTap: viewModel.syncToday
                 )
                 TodayHealthCard(summary: viewModel.todaySummary)
+                TodayWorkoutCard(workouts: viewModel.todayWorkouts)
                 SyncOptionsCard(
                     isSyncing: viewModel.isSyncing,
                     onSyncToday: viewModel.syncToday,
@@ -51,8 +52,6 @@ struct HomeView: View {
 // MARK: - Header View
 
 struct HeaderView: View {
-    let isConnected: Bool
-
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
@@ -65,14 +64,6 @@ struct HeaderView: View {
                     .foregroundColor(.secondaryText)
             }
             Spacer()
-            HStack(spacing: 8) {
-                Circle()
-                    .fill(isConnected ? Color.success : Color.error)
-                    .frame(width: 8, height: 8)
-                Text(isConnected ? "已连接" : "未连接")
-                    .font(.caption)
-                    .foregroundColor(.secondaryText)
-            }
         }
     }
 }
@@ -284,5 +275,30 @@ struct SyncOptionButton: View {
             .padding(.vertical, 12)
         }
         .disabled(isDisabled)
+    }
+}
+
+// MARK: - Today Workout Card
+
+struct TodayWorkoutCard: View {
+    let workouts: [WorkoutData]
+
+    private var totalDuration: TimeInterval { workouts.reduce(0) { $0 + $1.duration } }
+    private var totalCalories: Double { workouts.compactMap(\.energy).reduce(0, +) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("今日运动")
+                .font(.headline)
+                .foregroundColor(.text)
+
+            WorkoutStatsCard(
+                totalWorkouts: workouts.count,
+                totalDuration: totalDuration,
+                totalCalories: totalCalories
+            )
+        }
+        .padding()
+        .cardStyle()
     }
 }

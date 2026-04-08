@@ -38,15 +38,6 @@ struct WorkoutDetailView: View {
                                 totalCalories: viewModel.totalCalories
                             )
 
-                            // Sync Button
-                            if !viewModel.workouts.isEmpty {
-                                SyncButton(
-                                    isSyncing: viewModel.isSyncing,
-                                    message: viewModel.syncMessage,
-                                    onSync: { viewModel.syncWorkouts() }
-                                )
-                            }
-
                             // Workout List
                             if viewModel.workouts.isEmpty {
                                 EmptyWorkoutView()
@@ -63,6 +54,19 @@ struct WorkoutDetailView: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 40)
+                    .onEnded { value in
+                        let h = abs(value.translation.width)
+                        let v = abs(value.translation.height)
+                        guard h > v, h > 60 else { return }
+                        if value.translation.width < 0, viewModel.canSelectNextDay {
+                            viewModel.changeDay(by: 1)
+                        } else if value.translation.width > 0 {
+                            viewModel.changeDay(by: -1)
+                        }
+                    }
+            )
         }
         .alert("同步失败", isPresented: $viewModel.showSyncError) {
             Button("确定", role: .cancel) {}
@@ -165,46 +169,6 @@ struct StatItem: View {
     }
 }
 
-// MARK: - Sync Button
-
-struct SyncButton: View {
-    let isSyncing: Bool
-    let message: String?
-    let onSync: () -> Void
-
-    var body: some View {
-        VStack(spacing: 12) {
-            Button(action: onSync) {
-                HStack(spacing: 12) {
-                    if isSyncing {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                            .scaleEffect(0.8)
-                    } else {
-                        Image(systemName: "icloud.and.arrow.up")
-                            .font(.headline)
-                    }
-
-                    Text(isSyncing ? "正在同步..." : "同步到服务器")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                }
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(isSyncing ? Color.tertiaryText : Color.appAccent)
-                .cornerRadius(12)
-            }
-            .disabled(isSyncing)
-
-            if let message = message {
-                Text(message)
-                    .font(.caption)
-                    .foregroundColor(message.contains("成功") ? Color.success : Color.warning)
-                    .padding(.horizontal)
-            }
-        }
-    }
-}
 
 // MARK: - Workout Detail Card
 

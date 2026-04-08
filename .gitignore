@@ -49,3 +49,6 @@ coverage/
 
 # Claude
 .claude/
+
+# ios publish
+*.p8

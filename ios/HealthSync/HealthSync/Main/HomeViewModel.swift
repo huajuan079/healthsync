@@ -9,6 +9,7 @@ final class HomeViewModel: ObservableObject {
     @Published var isSyncing: Bool = false
     @Published var lastSyncTime: Date?
     @Published var todaySummary: TodayHealthSummary?
+    @Published var todayWorkouts: [WorkoutData] = []
     @Published var showSyncStatus: Bool = false
     @Published var showError: Bool = false
     @Published var errorMessage: String?
@@ -74,8 +75,10 @@ final class HomeViewModel: ObservableObject {
 
     func loadTodaySummary() {
         Task {
-            let summary = await healthRepository.getTodaySummary()
-            todaySummary = summary
+            async let summary = healthRepository.getTodaySummary()
+            async let allData = healthRepository.fetchAllData(for: Date())
+            todaySummary = await summary
+            todayWorkouts = await allData.data.workouts
         }
     }
 

@@ -6,7 +6,7 @@ import HealthKit
 protocol HealthRepositoryProtocol {
     func isHealthDataAvailable() -> Bool
     func requestAuthorization() async throws -> Bool
-    func checkAuthorizationStatus() -> Bool
+    func checkAuthorizationStatus() async -> Bool
     func fetchAllData(for date: Date) async -> (data: AllHealthData, warnings: [String])
     func fetchDataRange(from startDate: Date, to endDate: Date) async -> [AllHealthData]
     func getTodaySummary() async -> TodayHealthSummary
@@ -58,12 +58,22 @@ final class HealthRepository: HealthRepositoryProtocol {
         }
     }
 
-    func checkAuthorizationStatus() -> Bool {
-        // HealthKit does not expose read authorization status for privacy reasons.
-        // authorizationStatus(for:) only reflects *write* permission, and returns
-        // .sharingDenied when the app requests read-only access (toShare: nil).
-        // The correct approach is to attempt data queries directly after requestAuthorization succeeds.
-        return true
+    func checkAuthorizationStatus() async -> Bool {
+        guard isHealthDataAvailable() else { return false }
+        let typesToRead = HealthQueryFactory.shared.dataTypesToRead
+        return await withCheckedContinuation { continuation in
+            // getRequestStatusForAuthorization returns .unnecessary when all requested
+            // types are already authorized (or no prompt is needed), and .shouldRequest
+            // when at least one type still needs user authorization.
+            healthStore.getRequestStatusForAuthorization(toShare: [], read: typesToRead) { status, error in
+                if let error = error {
+                    print("[HealthRepository] checkAuthorizationStatus error: \(error)")
+                    continuation.resume(returning: false)
+                    return
+                }
+                continuation.resume(returning: status == .unnecessary)
+            }
+        }
     }
 
     func fetchAllData(for date: Date) async -> (data: AllHealthData, warnings: [String]) {
@@ -419,7 +429,10 @@ final class HealthRepository: HealthRepositoryProtocol {
                 let dateString = dateFormatter.string(from: date)
 
                 if let error = error {
-                    print("[HealthRepository] fetchStepData error: \(error)")
+                    let nsError = error as NSError
+                    if !(nsError.domain == HKErrorDomain && nsError.code == 11) {
+                        print("[HealthRepository] fetchStepData error: \(error)")
+                    }
                 }
 
                 let stepCount = statistics?.sumQuantity()?.doubleValue(for: .count()) ?? 0
@@ -897,7 +910,10 @@ final class HealthRepository: HealthRepositoryProtocol {
         return await withCheckedContinuation { continuation in
             let query = HKStatisticsQuery(quantityType: energyType, quantitySamplePredicate: predicate, options: .cumulativeSum) { _, statistics, error in
                 if let error = error {
-                    print("[HealthRepository] Active energy burned fetch error: \(error)")
+                    let nsError = error as NSError
+                    if !(nsError.domain == HKErrorDomain && nsError.code == 11) {
+                        print("[HealthRepository] Active energy burned fetch error: \(error)")
+                    }
                     continuation.resume(returning: nil)
                     return
                 }
@@ -945,7 +961,10 @@ final class HealthRepository: HealthRepositoryProtocol {
         return await withCheckedContinuation { continuation in
             let query = HKStatisticsQuery(quantityType: flightsType, quantitySamplePredicate: predicate, options: .cumulativeSum) { _, statistics, error in
                 if let error = error {
-                    print("[HealthRepository] Flights climbed fetch error: \(error)")
+                    let nsError = error as NSError
+                    if !(nsError.domain == HKErrorDomain && nsError.code == 11) {
+                        print("[HealthRepository] Flights climbed fetch error: \(error)")
+                    }
                     continuation.resume(returning: nil)
                     return
                 }

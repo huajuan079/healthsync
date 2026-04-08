@@ -25,6 +25,7 @@ struct LoginView: View {
                 Text("v1.0.0").font(.caption).foregroundColor(.tertiaryText)
             }.padding()
         }
+        .task { viewModel.warmUpConnection() }
     }
 }
 

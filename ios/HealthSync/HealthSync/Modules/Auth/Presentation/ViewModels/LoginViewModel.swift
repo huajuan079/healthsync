@@ -34,6 +34,11 @@ final class LoginViewModel: ObservableObject {
         }
     }
 
+    func warmUpConnection() {
+        guard let url = URL(string: Config.serverURL) else { return }
+        URLSession.shared.dataTask(with: URLRequest(url: url)) { _, _, _ in }.resume()
+    }
+
     var isFormValid: Bool {
         !username.isEmpty && !password.isEmpty && !isLoading
     }

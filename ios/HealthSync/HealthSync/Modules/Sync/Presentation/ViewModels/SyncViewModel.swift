@@ -65,7 +65,7 @@ final class SyncViewModel: ObservableObject {
         print("[SyncViewModel] requestAuthorizationAndSync called for date: \(date)")
 
         // Check actual HealthKit authorization status
-        let isFullyAuthorized = healthRepository.checkAuthorizationStatus()
+        let isFullyAuthorized = await healthRepository.checkAuthorizationStatus()
         print("[SyncViewModel] isFullyAuthorized: \(isFullyAuthorized)")
 
         if !isFullyAuthorized {

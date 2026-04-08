@@ -85,18 +85,34 @@ final class KeychainManager: KeychainManagerProtocol {
     }
 
     func hasValidToken() -> Bool {
-        // Fast check using cache
-        if cacheQueue.sync(execute: { cache[.accessToken] != nil }) {
-            return true
-        }
-
-        // Fallback to synchronous check (cached after first access)
         do {
-            _ = try get(key: .accessToken)
-            return true
+            let token = try get(key: .accessToken)
+            return !isJWTExpired(token)
         } catch {
             return false
         }
+    }
+
+    // Decodes the JWT payload (Base64URL) and checks the `exp` claim locally.
+    // No network request needed — the expiry is embedded in the token itself.
+    private func isJWTExpired(_ token: String) -> Bool {
+        let parts = token.split(separator: ".")
+        guard parts.count == 3 else { return true }
+
+        // Base64URL → Base64: replace URL-safe chars and add padding
+        var base64 = String(parts[1])
+            .replacingOccurrences(of: "-", with: "+")
+            .replacingOccurrences(of: "_", with: "/")
+        let remainder = base64.count % 4
+        if remainder > 0 { base64 += String(repeating: "=", count: 4 - remainder) }
+
+        guard let data = Data(base64Encoded: base64),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let exp = json["exp"] as? TimeInterval else {
+            return true  // unparseable → treat as expired
+        }
+
+        return Date().timeIntervalSince1970 >= exp
     }
 }
 

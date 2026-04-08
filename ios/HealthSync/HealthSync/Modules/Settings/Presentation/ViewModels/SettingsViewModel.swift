@@ -74,14 +74,15 @@ final class SettingsViewModel: ObservableObject {
 
     // 检查授权状态并提示
     func checkAuthorizationAndAlert() {
-        let isAuthorized = healthRepository.checkAuthorizationStatus()
-
-        if isAuthorized {
-            authAlertMessage = "✅ 所有健康数据权限已授予！\n\n您现在可以正常同步健康数据了。"
-        } else {
-            authAlertMessage = "⚠️ 部分健康数据权限未授予\n\n由于 iOS 系统限制，App 无法再次弹出授权窗口。\n\n请手动开启：\n1. 打开 iPhone「设置」→「健康」\n2. 点击「数据访问与设备」→「HealthSync」\n3. 开启所有数据类型的开关\n\n或点击「打开健康设置」直接打开健康 App"
+        Task {
+            let isAuthorized = await healthRepository.checkAuthorizationStatus()
+            if isAuthorized {
+                authAlertMessage = "✅ 所有健康数据权限已授予！\n\n您现在可以正常同步健康数据了。"
+            } else {
+                authAlertMessage = "⚠️ 部分健康数据权限未授予\n\n由于 iOS 系统限制，App 无法再次弹出授权窗口。\n\n请手动开启：\n1. 打开 iPhone「设置」→「健康」\n2. 点击「数据访问与设备」→「HealthSync」\n3. 开启所有数据类型的开关\n\n或点击「打开健康设置」直接打开健康 App"
+            }
+            showingAuthAlert = true
         }
-        showingAuthAlert = true
     }
 
     func requestHealthKitAuthorization() async {
@@ -93,7 +94,7 @@ final class SettingsViewModel: ObservableObject {
             print("[SettingsViewModel] Authorization request completed: \(requestSuccess)")
 
             // 请求完成后，检查实际的授权状态
-            let isAuthorized = healthRepository.checkAuthorizationStatus()
+            let isAuthorized = await healthRepository.checkAuthorizationStatus()
             print("[SettingsViewModel] Actual authorization status: \(isAuthorized)")
             UserDefaults.standard.set(isAuthorized, forKey: "healthkit_authorized")
 

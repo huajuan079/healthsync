@@ -25,7 +25,7 @@ final class HealthDetailViewModel: ObservableObject {
         errorMessage = nil
 
         // Check authorization status first
-        let isAuthorized = healthRepository.checkAuthorizationStatus()
+        let isAuthorized = await healthRepository.checkAuthorizationStatus()
         print("[HealthDetailViewModel] Authorization status: \(isAuthorized)")
 
         if !isAuthorized {

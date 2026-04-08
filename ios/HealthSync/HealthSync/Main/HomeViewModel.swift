@@ -75,6 +75,8 @@ final class HomeViewModel: ObservableObject {
 
     func loadTodaySummary() {
         Task {
+            // Request HealthKit authorization proactively; system only shows dialog if not yet asked
+            _ = try? await healthRepository.requestAuthorization()
             async let summary = healthRepository.getTodaySummary()
             async let allData = healthRepository.fetchAllData(for: Date())
             todaySummary = await summary

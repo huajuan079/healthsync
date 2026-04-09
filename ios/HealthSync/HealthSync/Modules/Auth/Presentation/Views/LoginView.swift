@@ -1,10 +1,14 @@
 import SwiftUI
+import AuthenticationServices
 
 struct LoginView: View {
     @StateObject private var viewModel: LoginViewModel
 
     init(container: AppContainer) {
-        self._viewModel = StateObject(wrappedValue: LoginViewModel(loginUseCase: container.loginUseCase))
+        self._viewModel = StateObject(wrappedValue: LoginViewModel(
+            loginUseCase: container.loginUseCase,
+            appleSignInUseCase: container.appleSignInUseCase
+        ))
     }
 
     var body: some View {
@@ -90,6 +94,23 @@ struct LoginFormView: View {
                 .cornerRadius(10)
             }
             .disabled(!viewModel.isFormValid)
+
+            HStack {
+                Rectangle().frame(height: 1).foregroundColor(.tertiaryBackground)
+                Text("或").font(.caption).foregroundColor(.tertiaryText).padding(.horizontal, 8)
+                Rectangle().frame(height: 1).foregroundColor(.tertiaryBackground)
+            }
+            .padding(.top, 4)
+
+            SignInWithAppleButton(.signIn) { request in
+                request.requestedScopes = [.fullName, .email]
+            } onCompletion: { result in
+                viewModel.handleAppleSignIn(result: result)
+            }
+            .frame(height: 50)
+            .signInWithAppleButtonStyle(.black)
+            .cornerRadius(10)
+            .disabled(viewModel.isLoading)
         }
     }
 }

@@ -99,6 +99,8 @@ struct AmbientBackground: View {
 // MARK: - Card Style (Liquid Glass)
 
 struct CardStyle: ViewModifier {
+    @Environment(\.colorScheme) private var colorScheme
+
     func body(content: Content) -> some View {
         content
             .background(.ultraThinMaterial)
@@ -107,7 +109,12 @@ struct CardStyle: ViewModifier {
                 RoundedRectangle(cornerRadius: 16)
                     .stroke(Color.white.opacity(0.15), lineWidth: 1)
             )
-            .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
+            .shadow(
+                color: .black.opacity(colorScheme == .dark ? 0.08 : 0.11),
+                radius: 8,
+                x: 0,
+                y: 4
+            )
     }
 }
 

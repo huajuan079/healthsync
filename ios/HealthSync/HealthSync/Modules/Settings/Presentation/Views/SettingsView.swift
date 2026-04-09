@@ -16,6 +16,18 @@ struct SettingsView: View {
             AmbientBackground()
             ScrollView {
                 VStack(spacing: 16) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("设置")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.text)
+                            Text("账户与同步配置")
+                                .font(.caption)
+                                .foregroundColor(.secondaryText)
+                        }
+                        Spacer()
+                    }
                     accountCard
                     syncCard
                     healthPermissionCard
@@ -26,8 +38,7 @@ struct SettingsView: View {
                 .padding(.bottom, 100)
             }
         }
-        .navigationTitle("设置")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarHidden(true)
         .sheet(isPresented: $viewModel.showDevPanel) {
             DevServerView(viewModel: viewModel)
         }

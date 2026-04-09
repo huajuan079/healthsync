@@ -94,10 +94,7 @@ struct DateSelectorView: View {
             .disabled(!canSelectNextDay)
         }
         .padding()
-        .background(.ultraThinMaterial)
-        .cornerRadius(16)
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.15), lineWidth: 1))
-        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
+        .cardStyle()
     }
 }
 

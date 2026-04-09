@@ -88,11 +88,11 @@ struct MetricCard: View {
 
 #Preview {
     VStack(spacing: 16) {
-        HealthCard(icon: "heart.fill", title: "心率", color: Color(red: 0.92, green: 0.30, blue: 0.40), trailing: "平均 72 bpm") {
-            Text("Sample content").foregroundColor(.secondary)
+        HealthCard(icon: "heart.fill", title: "心率", color: .heartRateColor, trailing: "平均 72 bpm") {
+            Text("Sample content").foregroundColor(.secondaryText)
         }
-        MetricCard(icon: "figure.walk", title: "步数", value: "8,432", unit: "步", color: Color(red: 0.25, green: 0.65, blue: 0.90))
+        MetricCard(icon: "figure.walk", title: "步数", value: "8,432", unit: "步", color: .stepsColor)
     }
     .padding()
-    .background(Color(UIColor.systemBackground))
+    .background(Color.background)
 }

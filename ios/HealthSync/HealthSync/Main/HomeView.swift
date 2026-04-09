@@ -179,6 +179,12 @@ struct HealthMetricCard: View {
                 .font(.headline)
                 .foregroundColor(.text)
 
+            if !unit.isEmpty {
+                Text(unit)
+                    .font(.caption2)
+                    .foregroundColor(.secondaryText)
+            }
+
             Text(title)
                 .font(.caption)
                 .foregroundColor(.tertiaryText)

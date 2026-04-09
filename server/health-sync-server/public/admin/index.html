@@ -247,8 +247,11 @@ const UserUploadsPage = {
               <el-tag :type="statusType(row.status)" size="small">{{ statusLabel(row.status) }}</el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="createdAt" label="上传时间" sortable="custom" min-width="160">
+          <el-table-column prop="createdAt" label="首次上传" sortable="custom" min-width="160">
             <template #default="{ row }">{{ new Date(row.createdAt).toLocaleString('zh-CN') }}</template>
+          </el-table-column>
+          <el-table-column label="最后推送" min-width="160">
+            <template #default="{ row }">{{ row.updatedAt ? new Date(row.updatedAt).toLocaleString('zh-CN') : new Date(row.createdAt).toLocaleString('zh-CN') }}</template>
           </el-table-column>
           <el-table-column label="操作" width="80">
             <template #default="{ row }">
@@ -355,8 +358,11 @@ const UploadDetailPage = {
           <el-descriptions-item label="校验和">
             <span style="font-family:monospace;font-size:11px;word-break:break-all">{{ upload.checksum }}</span>
           </el-descriptions-item>
-          <el-descriptions-item label="上传时间">
+          <el-descriptions-item label="首次上传">
             {{ new Date(upload.createdAt).toLocaleString('zh-CN') }}
+          </el-descriptions-item>
+          <el-descriptions-item label="最后推送">
+            {{ upload.updatedAt ? new Date(upload.updatedAt).toLocaleString('zh-CN') : new Date(upload.createdAt).toLocaleString('zh-CN') }}
           </el-descriptions-item>
           <el-descriptions-item v-if="upload.errorMessage" label="错误信息">
             <span style="color:#f56c6c">{{ upload.errorMessage }}</span>

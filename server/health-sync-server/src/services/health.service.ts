@@ -72,6 +72,9 @@ export class HealthService {
         validated.data
       );
 
+      // Update sync status so lastSyncAt reflects the latest push
+      await this.updateSyncStatus(userId, validated.date);
+
       logger.info(`Updated health data for ${username} on ${validated.date}`);
       return { batchId: existing.id, message: 'Data updated successfully' };
     }

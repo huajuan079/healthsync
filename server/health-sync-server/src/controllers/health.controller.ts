@@ -263,7 +263,8 @@ export class HealthController {
               <th>记录数</th>
               <th>文件大小</th>
               <th>状态</th>
-              <th>上传时间</th>
+              <th>首次上传</th>
+              <th>最后推送</th>
               <th>操作</th>
             </tr>
           </thead>
@@ -276,6 +277,7 @@ export class HealthController {
               <td>${(upload.fileSize / 1024).toFixed(1)} KB</td>
               <td class="status-${upload.status}">${upload.status === 'completed' ? '✅ 完成' : upload.status === 'pending' ? '⏳ 处理中' : '❌ 失败'}</td>
               <td>${new Date(upload.createdAt).toLocaleString('zh-CN')}</td>
+              <td>${(upload as any).updatedAt ? new Date((upload as any).updatedAt).toLocaleString('zh-CN') : new Date(upload.createdAt).toLocaleString('zh-CN')}</td>
               <td><a href="/healthsync/api/health/web/upload/${upload.id}" target="_blank" style="color: #667eea; text-decoration: none;">👁️ 查看</a></td>
             </tr>
             `).join('')}
@@ -479,12 +481,12 @@ export class HealthController {
         <div class="detail-value" style="font-family: monospace; font-size: 12px;">${upload.checksum}</div>
       </div>
       <div class="detail-row">
-        <div class="detail-label">上传时间</div>
+        <div class="detail-label">首次上传</div>
         <div class="detail-value">${new Date(upload.createdAt).toLocaleString('zh-CN')}</div>
       </div>
       <div class="detail-row">
-        <div class="detail-label">更新时间</div>
-        <div class="detail-value">${new Date(upload.updatedAt).toLocaleString('zh-CN')}</div>
+        <div class="detail-label">最后推送</div>
+        <div class="detail-value">${upload.updatedAt ? new Date(upload.updatedAt).toLocaleString('zh-CN') : new Date(upload.createdAt).toLocaleString('zh-CN')}</div>
       </div>
       ${upload.errorMessage ? `
       <div class="detail-row">

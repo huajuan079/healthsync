@@ -189,6 +189,7 @@ export class AdminWebController {
         checksum: upload.checksum,
         errorMessage: upload.errorMessage ?? null,
         createdAt: upload.createdAt,
+        updatedAt: (upload as any).updatedAt ?? null,
         fileContent,
       });
     } catch (error) {

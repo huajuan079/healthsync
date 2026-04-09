@@ -34,6 +34,10 @@ export const config = {
   storage: {
     basePath: './storage/health_data',
   },
+
+  apple: {
+    clientId: process.env.APPLE_CLIENT_ID || '',
+  },
 } as const;
 
 // Validate required config

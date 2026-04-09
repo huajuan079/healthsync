@@ -165,3 +165,10 @@ declare global {
     }
   }
 }
+
+export interface AppleLoginRequest {
+  identityToken: string;
+  userIdentifier: string;
+  email?: string;
+  fullName?: string;
+}

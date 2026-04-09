@@ -127,11 +127,7 @@ struct TodayHealthCard: View {
     let summary: TodayHealthSummary?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("今日健康")
-                .font(.headline)
-                .foregroundColor(.text)
-
+        HealthCard(icon: "heart.fill", title: "今日健康", color: .heartRateColor) {
             HStack(spacing: 12) {
                 HealthMetricCard(
                     icon: "figure.walk",
@@ -161,8 +157,6 @@ struct TodayHealthCard: View {
                 )
             }
         }
-        .padding()
-        .cardStyle()
     }
 }
 
@@ -203,11 +197,7 @@ struct SyncOptionsCard: View {
     let onSyncMonth: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("同步选项")
-                .font(.headline)
-                .foregroundColor(.text)
-
+        HealthCard(icon: "arrow.triangle.2.circlepath", title: "同步选项", color: .appAccent) {
             VStack(spacing: 8) {
                 SyncOptionButton(
                     title: "立即同步今日数据",
@@ -241,8 +231,6 @@ struct SyncOptionsCard: View {
                 )
             }
         }
-        .padding()
-        .cardStyle()
     }
 }
 
@@ -287,11 +275,7 @@ struct TodayWorkoutCard: View {
     private var totalCalories: Double { workouts.compactMap(\.energy).reduce(0, +) }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("今日运动")
-                .font(.headline)
-                .foregroundColor(.text)
-
+        HealthCard(icon: "figure.run", title: "今日运动", color: .energyColor) {
             HStack(spacing: 20) {
                 HealthMetricCard(
                     icon: "figure.run",
@@ -316,8 +300,6 @@ struct TodayWorkoutCard: View {
                 )
             }
         }
-        .padding()
-        .cardStyle()
     }
 
     private func formatDuration(_ duration: TimeInterval) -> String {

@@ -25,6 +25,7 @@ enum Endpoint: Equatable {
     case healthUpload(data: HealthDataBatch)
     case healthStatus
     case healthFetch(username: String, startDate: String?, endDate: String?)
+    case appleLogin(identityToken: String, userIdentifier: String, email: String?, fullName: String?)
 
     static func == (lhs: Endpoint, rhs: Endpoint) -> Bool {
         switch (lhs, rhs) {
@@ -32,7 +33,8 @@ enum Endpoint: Equatable {
              (.refreshToken, .refreshToken),
              (.healthUpload, .healthUpload),
              (.healthStatus, .healthStatus),
-             (.healthFetch, .healthFetch):
+             (.healthFetch, .healthFetch),
+             (.appleLogin, .appleLogin):
             return true
         default:
             return false
@@ -51,12 +53,14 @@ enum Endpoint: Equatable {
             return "/api/health/status"
         case .healthFetch:
             return "/api/health/fetch"
+        case .appleLogin:
+            return "/api/auth/apple"
         }
     }
 
     var method: String {
         switch self {
-        case .login, .refreshToken, .healthUpload:
+        case .login, .refreshToken, .healthUpload, .appleLogin:
             return "POST"
         case .healthStatus, .healthFetch:
             return "GET"
@@ -107,7 +111,8 @@ final class APIService: APIServiceProtocol {
         if let httpResponse = response as? HTTPURLResponse,
            httpResponse.statusCode == 401,
            endpoint != .login(username: "", password: ""),
-           endpoint != .refreshToken(token: "") {
+           endpoint != .refreshToken(token: ""),
+           endpoint != .appleLogin(identityToken: "", userIdentifier: "", email: nil, fullName: nil) {
             print("[APIService] 401 received, attempting token refresh")
             try await refreshAndRetry()
             return try await self.request(endpoint)
@@ -169,6 +174,15 @@ final class APIService: APIServiceProtocol {
             components.queryItems = queryItems
             request.url = components.url
             request.httpBody = nil
+
+        case .appleLogin(let identityToken, let userIdentifier, let email, let fullName):
+            let body = AppleLoginRequest(
+                identityToken: identityToken,
+                userIdentifier: userIdentifier,
+                email: email,
+                fullName: fullName
+            )
+            request.httpBody = try JSONEncoder().encode(body)
 
         default:
             break
@@ -290,6 +304,13 @@ struct User: Codable {
 struct HealthDataBatch: Codable {
     let date: String
     let data: String
+}
+
+struct AppleLoginRequest: Codable {
+    let identityToken: String
+    let userIdentifier: String
+    let email: String?
+    let fullName: String?
 }
 
 struct UploadResponse: Codable {

@@ -14,15 +14,17 @@ struct SettingsView: View {
     var body: some View {
         ZStack {
             AmbientBackground()
-            List {
-                accountSection
-                syncSection
-                healthPermissionSection
-                aboutSection
-                logoutSection
+            ScrollView {
+                VStack(spacing: 16) {
+                    accountCard
+                    syncCard
+                    healthPermissionCard
+                    aboutCard
+                    logoutButton
+                }
+                .padding()
+                .padding(.bottom, 100)
             }
-            .scrollContentBackground(.hidden)
-            .background(Color.clear)
         }
         .navigationTitle("设置")
         .navigationBarTitleDisplayMode(.inline)
@@ -40,88 +42,90 @@ struct SettingsView: View {
         }
     }
 
-    private var accountSection: some View {
-        Section {
+    private var accountCard: some View {
+        HealthCard(icon: "person.circle.fill", title: "账户", color: .appAccent) {
             HStack {
-                Image(systemName: "person.circle.fill").foregroundColor(.appAccent).font(.title2)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("用户").font(.headline).foregroundColor(.text)
-                    if let username = UserDefaultsManager.shared.username {
-                        Text("当前账号: \(username)").font(.caption).foregroundColor(.success)
-                    } else {
-                        Text("已登录").font(.caption).foregroundColor(.success)
-                    }
+                if let username = UserDefaultsManager.shared.username {
+                    Text("当前账号: \(username)")
+                        .font(.subheadline)
+                        .foregroundColor(.success)
+                } else {
+                    Text("已登录")
+                        .font(.subheadline)
+                        .foregroundColor(.success)
                 }
                 Spacer()
-            }.padding(.vertical, 8)
-        } header: {
-            Text("账户").font(.subheadline).foregroundColor(.secondaryText).textCase(.none)
+            }
         }
-        .listRowBackground(Rectangle().fill(.ultraThinMaterial))
     }
 
-    private var syncSection: some View {
-        Section {
-            Toggle(isOn: Binding(
-                get: { viewModel.autoSyncEnabled },
-                set: { viewModel.toggleAutoSync($0) }
-            )) {
-                Text("自动同步").foregroundColor(.text)
-            }
-            .tint(.appAccent)
+    private var syncCard: some View {
+        HealthCard(icon: "arrow.triangle.2.circlepath", title: "同步设置", color: .stepsColor) {
+            VStack(alignment: .leading, spacing: 12) {
+                Toggle(isOn: Binding(
+                    get: { viewModel.autoSyncEnabled },
+                    set: { viewModel.toggleAutoSync($0) }
+                )) {
+                    Text("自动同步").foregroundColor(.text)
+                }
+                .tint(.appAccent)
 
-            if viewModel.autoSyncEnabled {
-                SyncHourPicker(syncHour: viewModel.syncHour) { viewModel.updateSyncHour($0) }
+                if viewModel.autoSyncEnabled {
+                    SyncHourPicker(syncHour: viewModel.syncHour) { viewModel.updateSyncHour($0) }
+
+                    Text("系统会在 \(String(format: "%02d:00", viewModel.syncHour)) 之后找合适时机执行后台同步，实际时间由 iOS 决定")
+                        .font(.caption)
+                        .foregroundColor(.tertiaryText)
+                }
             }
-        } header: {
-            Text("同步设置").font(.subheadline).foregroundColor(.secondaryText).textCase(.none)
-        } footer: {
-            if viewModel.autoSyncEnabled {
-                Text("系统会在 \(String(format: "%02d:00", viewModel.syncHour)) 之后找合适时机执行后台同步，实际时间由 iOS 决定")
+        }
+    }
+
+    private var healthPermissionCard: some View {
+        HealthCard(icon: "heart.text.square", title: "健康数据权限", color: .heartRateColor) {
+            VStack(alignment: .leading, spacing: 12) {
+                Button("检查授权状态") { viewModel.checkAuthorizationAndAlert() }
+                    .foregroundColor(.appAccent)
+
+                Divider().background(Color.tertiaryBackground)
+
+                Link(destination: URL(string: "x-apple-health://")!) {
+                    HStack {
+                        Text("打开健康设置").foregroundColor(.appAccent)
+                        Spacer()
+                        Image(systemName: "arrow.up.right.square")
+                            .foregroundColor(.secondaryText)
+                            .font(.caption)
+                    }
+                }
+
+                Divider().background(Color.tertiaryBackground)
+
+                if viewModel.isRequestingAuth {
+                    HStack {
+                        ProgressView().scaleEffect(0.8)
+                        Text("正在请求授权...")
+                            .font(.caption)
+                            .foregroundColor(.secondaryText)
+                            .padding(.leading, 8)
+                    }
+                } else {
+                    Button("重新请求授权（首次或已删除权限时有效）") {
+                        Task { await viewModel.requestHealthKitAuthorization() }
+                    }
+                    .foregroundColor(.secondaryText)
+                    .font(.caption)
+                }
+
+                Text("💡 如果之前拒绝了授权，系统不会再次弹窗。请点击「打开健康设置」手动开启权限。")
+                    .font(.caption)
                     .foregroundColor(.tertiaryText)
             }
         }
-        .listRowBackground(Rectangle().fill(.ultraThinMaterial))
     }
 
-    private var healthPermissionSection: some View {
-        Section {
-            Button("检查授权状态") { viewModel.checkAuthorizationAndAlert() }
-                .foregroundColor(.appAccent)
-
-            Link(destination: URL(string: "x-apple-health://")!) {
-                HStack {
-                    Text("打开健康设置").foregroundColor(.appAccent)
-                    Spacer()
-                    Image(systemName: "arrow.up.right.square").foregroundColor(.secondaryText).font(.caption)
-                }
-            }
-
-            if viewModel.isRequestingAuth {
-                HStack {
-                    Spacer()
-                    ProgressView().scaleEffect(0.8)
-                    Text("正在请求授权...").font(.caption).foregroundColor(.secondaryText).padding(.leading, 8)
-                    Spacer()
-                }
-            } else {
-                Button("重新请求授权（首次或已删除权限时有效）") {
-                    Task { await viewModel.requestHealthKitAuthorization() }
-                }
-                .foregroundColor(.secondaryText)
-                .font(.caption)
-            }
-        } header: {
-            Text("健康数据权限").font(.subheadline).foregroundColor(.secondaryText).textCase(.none)
-        } footer: {
-            Text("💡 如果之前拒绝了授权，系统不会再次弹窗。请点击「打开健康设置」手动开启权限。")
-                .foregroundColor(.tertiaryText)
-        }
-        .listRowBackground(Rectangle().fill(.ultraThinMaterial))
-    }
-
-    private var aboutSection: some View {
-        Section {
+    private var aboutCard: some View {
+        HealthCard(icon: "info.circle", title: "关于", color: .secondaryText) {
             HStack {
                 Text("版本").foregroundColor(.text)
                 Spacer()
@@ -129,21 +133,24 @@ struct SettingsView: View {
             }
             .contentShape(Rectangle())
             .onTapGesture { viewModel.handleVersionTap() }
-        } header: {
-            Text("关于").font(.subheadline).foregroundColor(.secondaryText).textCase(.none)
         }
-        .listRowBackground(Rectangle().fill(.ultraThinMaterial))
     }
 
-    private var logoutSection: some View {
-        Section {
-            Button(role: .destructive) {
-                viewModel.showingLogoutAlert = true
-            } label: {
-                HStack { Spacer(); Text("退出登录"); Spacer() }
+    private var logoutButton: some View {
+        Button(role: .destructive) {
+            viewModel.showingLogoutAlert = true
+        } label: {
+            HStack {
+                Spacer()
+                Text("退出登录")
+                    .font(.body)
+                    .fontWeight(.medium)
+                Spacer()
             }
-        } header: { EmptyView() }
-        .listRowBackground(Rectangle().fill(.ultraThinMaterial))
+            .padding()
+            .cardStyle()
+        }
+        .buttonStyle(.plain)
     }
 }
 

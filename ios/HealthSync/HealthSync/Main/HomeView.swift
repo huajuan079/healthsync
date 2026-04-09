@@ -45,7 +45,10 @@ struct HomeView: View {
         } message: {
             Text(viewModel.errorMessage ?? "未知错误")
         }
-        .onAppear { viewModel.loadTodaySummary() }
+        .onAppear {
+            viewModel.loadTodaySummary()
+            viewModel.autoSyncOnLaunchIfNeeded()
+        }
     }
 }
 

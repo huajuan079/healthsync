@@ -18,6 +18,7 @@ final class HomeViewModel: ObservableObject {
     private let syncUseCase: SyncHealthDataUseCase
     private var _syncViewModel: SyncViewModel?
     private var cancellables = Set<AnyCancellable>()
+    private static var hasAutoSynced = false
 
     var syncViewModel: SyncViewModel {
         if _syncViewModel == nil {
@@ -53,6 +54,12 @@ final class HomeViewModel: ObservableObject {
                 self.errorMessage = self.syncViewModel.errorMessage
             }
             .store(in: &cancellables)
+    }
+
+    func autoSyncOnLaunchIfNeeded() {
+        guard !HomeViewModel.hasAutoSynced else { return }
+        HomeViewModel.hasAutoSynced = true
+        syncToday()
     }
 
     func syncToday() {

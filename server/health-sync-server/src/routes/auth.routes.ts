@@ -28,4 +28,10 @@ router.post('/logout', authenticate, authController.logout.bind(authController))
  */
 router.get('/me', authenticate, authController.me.bind(authController));
 
+/**
+ * POST /auth/apple
+ * Sign in or register with Apple ID
+ */
+router.post('/apple', authController.appleLogin.bind(authController));
+
 export { router as authRoutes };

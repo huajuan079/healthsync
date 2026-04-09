@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { AuthService } from '../services/auth.service';
+import type { AppleLoginRequest } from '../types';
 import { createLogger } from '../utils/logger';
 
 const logger = createLogger('AuthController');
@@ -14,6 +15,13 @@ const loginSchema = z.object({
 
 const refreshSchema = z.object({
   refresh_token: z.string().min(1),
+});
+
+const appleLoginSchema = z.object({
+  identityToken: z.string().min(1),
+  userIdentifier: z.string().min(1),
+  email: z.string().email().optional(),
+  fullName: z.string().optional(),
 });
 
 export class AuthController {
@@ -84,6 +92,23 @@ export class AuthController {
       });
     } else {
       res.status(401).json({ error: 'Not authenticated' });
+    }
+  }
+
+  /**
+   * POST /auth/apple
+   */
+  async appleLogin(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const body = appleLoginSchema.parse(req.body) as AppleLoginRequest;
+      const result = await authService.appleLogin(body);
+      res.json(result);
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(401).json({ error: error.message });
+      } else {
+        next(error);
+      }
     }
   }
 }

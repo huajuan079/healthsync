@@ -221,57 +221,34 @@ struct HealthDataCardsView: View {
 struct HeartRateDetailCard: View {
     let samples: [HeartRateData.HeartSample]
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: "heart.fill")
-                    .foregroundColor(.heartRateColor)
-                    .font(.title2)
-                Text("心率")
-                    .font(.headline)
-                    .foregroundColor(.text)
-                Spacer()
-                if let avg = averageHeartRate {
-                    Text("平均 \(Int(avg)) bpm")
-                        .font(.subheadline)
-                        .foregroundColor(.secondaryText)
-                }
-            }
+    private var averageHeartRate: Double? {
+        guard !samples.isEmpty else { return nil }
+        return samples.reduce(0.0) { $0 + $1.value } / Double(samples.count)
+    }
 
-            if samples.count > 1, let min = samples.map({ $0.value }).min(),
+    var body: some View {
+        HealthCard(
+            icon: "heart.fill",
+            title: "心率",
+            color: .heartRateColor,
+            trailing: averageHeartRate.map { "平均 \(Int($0)) bpm" }
+        ) {
+            if samples.count > 1,
+               let min = samples.map({ $0.value }).min(),
                let max = samples.map({ $0.value }).max() {
                 HStack(spacing: 20) {
                     VStack(spacing: 4) {
-                        Text("\(Int(min))")
-                            .font(.headline)
-                            .foregroundColor(.text)
-                        Text("最低")
-                            .font(.caption)
-                            .foregroundColor(.secondaryText)
+                        Text("\(Int(min))").font(.headline).foregroundColor(.text)
+                        Text("最低").font(.caption).foregroundColor(.secondaryText)
                     }
                     VStack(spacing: 4) {
-                        Text("\(Int(max))")
-                            .font(.headline)
-                            .foregroundColor(.text)
-                        Text("最高")
-                            .font(.caption)
-                            .foregroundColor(.secondaryText)
+                        Text("\(Int(max))").font(.headline).foregroundColor(.text)
+                        Text("最高").font(.caption).foregroundColor(.secondaryText)
                     }
                     Spacer()
                 }
             }
         }
-        .padding()
-        .background(.ultraThinMaterial)
-        .cornerRadius(16)
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.15), lineWidth: 1))
-        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
-    }
-
-    var averageHeartRate: Double? {
-        guard !samples.isEmpty else { return nil }
-        let total = samples.reduce(0.0) { $0 + $1.value }
-        return total / Double(samples.count)
     }
 }
 
@@ -280,57 +257,34 @@ struct HeartRateDetailCard: View {
 struct HRVDetailCard: View {
     let samples: [HRVData.HRVSample]
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: "waveform.path")
-                    .foregroundColor(.sleepColor)
-                    .font(.title2)
-                Text("心率变异性")
-                    .font(.headline)
-                    .foregroundColor(.text)
-                Spacer()
-                if let avg = averageHRV {
-                    Text("平均 \(Int(avg)) ms")
-                        .font(.subheadline)
-                        .foregroundColor(.secondaryText)
-                }
-            }
+    private var averageHRV: Double? {
+        guard !samples.isEmpty else { return nil }
+        return samples.reduce(0.0) { $0 + $1.value } / Double(samples.count)
+    }
 
-            if samples.count > 1, let min = samples.map({ $0.value }).min(),
+    var body: some View {
+        HealthCard(
+            icon: "waveform.path",
+            title: "心率变异性",
+            color: .sleepColor,
+            trailing: averageHRV.map { "平均 \(Int($0)) ms" }
+        ) {
+            if samples.count > 1,
+               let min = samples.map({ $0.value }).min(),
                let max = samples.map({ $0.value }).max() {
                 HStack(spacing: 20) {
                     VStack(spacing: 4) {
-                        Text("\(Int(min))")
-                            .font(.headline)
-                            .foregroundColor(.text)
-                        Text("最低")
-                            .font(.caption)
-                            .foregroundColor(.secondaryText)
+                        Text("\(Int(min))").font(.headline).foregroundColor(.text)
+                        Text("最低").font(.caption).foregroundColor(.secondaryText)
                     }
                     VStack(spacing: 4) {
-                        Text("\(Int(max))")
-                            .font(.headline)
-                            .foregroundColor(.text)
-                        Text("最高")
-                            .font(.caption)
-                            .foregroundColor(.secondaryText)
+                        Text("\(Int(max))").font(.headline).foregroundColor(.text)
+                        Text("最高").font(.caption).foregroundColor(.secondaryText)
                     }
                     Spacer()
                 }
             }
         }
-        .padding()
-        .background(.ultraThinMaterial)
-        .cornerRadius(16)
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.15), lineWidth: 1))
-        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
-    }
-
-    var averageHRV: Double? {
-        guard !samples.isEmpty else { return nil }
-        let total = samples.reduce(0.0) { $0 + $1.value }
-        return total / Double(samples.count)
     }
 }
 
@@ -339,46 +293,7 @@ struct HRVDetailCard: View {
 struct SleepDetailCard: View {
     let sleepData: [SleepData]
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: "bed.double.fill")
-                    .foregroundColor(.sleepColor)
-                    .font(.title2)
-                Text("睡眠")
-                    .font(.headline)
-                    .foregroundColor(.text)
-                Spacer()
-                if let total = totalSleepDuration {
-                    Text("\(total)小时")
-                        .font(.subheadline)
-                        .foregroundColor(.secondaryText)
-                }
-            }
-
-            VStack(alignment: .leading, spacing: 8) {
-                if let inBed = durationForType(.inBed) {
-                    SleepRow(type: "在床", duration: inBed)
-                }
-                if let asleep = durationForType(.asleep) {
-                    SleepRow(type: "入睡", duration: asleep)
-                }
-                if let deep = durationForType(.asleepDeep) {
-                    SleepRow(type: "深睡", duration: deep, color: .sleepColor)
-                }
-                if let rem = durationForType(.asleepREM) {
-                    SleepRow(type: "REM", duration: rem, color: .appAccent)
-                }
-            }
-        }
-        .padding()
-        .background(.ultraThinMaterial)
-        .cornerRadius(16)
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.15), lineWidth: 1))
-        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
-    }
-
-    var totalSleepDuration: String? {
+    private var totalSleepDuration: String? {
         let total = sleepData.reduce(0.0) { sum, item in
             if item.type == .asleep || item.type == .asleepCore || item.type == .asleepDeep || item.type == .asleepREM {
                 return sum + item.duration
@@ -389,10 +304,25 @@ struct SleepDetailCard: View {
         return String(format: "%.1f", total / 3600)
     }
 
-    func durationForType(_ type: SleepData.SleepType) -> TimeInterval? {
-        let total = sleepData.filter { $0.type == type }
-            .reduce(0.0) { $0 + $1.duration }
+    private func durationForType(_ type: SleepData.SleepType) -> TimeInterval? {
+        let total = sleepData.filter { $0.type == type }.reduce(0.0) { $0 + $1.duration }
         return total > 0 ? total : nil
+    }
+
+    var body: some View {
+        HealthCard(
+            icon: "bed.double.fill",
+            title: "睡眠",
+            color: .sleepColor,
+            trailing: totalSleepDuration.map { "\($0)小时" }
+        ) {
+            VStack(alignment: .leading, spacing: 8) {
+                if let inBed = durationForType(.inBed) { SleepRow(type: "在床", duration: inBed) }
+                if let asleep = durationForType(.asleep) { SleepRow(type: "入睡", duration: asleep) }
+                if let deep = durationForType(.asleepDeep) { SleepRow(type: "深睡", duration: deep, color: .sleepColor) }
+                if let rem = durationForType(.asleepREM) { SleepRow(type: "REM", duration: rem, color: .appAccent) }
+            }
+        }
     }
 }
 
@@ -429,35 +359,16 @@ struct WorkoutListCard: View {
     let workouts: [WorkoutData]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: "figure.run")
-                    .foregroundColor(.energyColor)
-                    .font(.title2)
-                Text("运动")
-                    .font(.headline)
-                    .foregroundColor(.text)
-                Spacer()
-                Text("\(workouts.count)次")
-                    .font(.subheadline)
-                    .foregroundColor(.secondaryText)
-            }
-
+        HealthCard(icon: "figure.run", title: "运动", color: .energyColor, trailing: "\(workouts.count)次") {
             VStack(spacing: 8) {
                 ForEach(Array(workouts.enumerated()), id: \.element.startDate) { index, workout in
                     WorkoutRow(workout: workout)
                     if index < workouts.count - 1 {
-                        Divider()
-                            .background(Color.tertiaryBackground)
+                        Divider().background(Color.tertiaryBackground)
                     }
                 }
             }
         }
-        .padding()
-        .background(.ultraThinMaterial)
-        .cornerRadius(16)
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.15), lineWidth: 1))
-        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
     }
 }
 
@@ -527,57 +438,34 @@ struct WorkoutRow: View {
 struct BloodOxygenCard: View {
     let samples: [BloodOxygenData.OxygenSample]
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: "drop.fill")
-                    .foregroundColor(.appAccent)
-                    .font(.title2)
-                Text("血氧")
-                    .font(.headline)
-                    .foregroundColor(.text)
-                Spacer()
-                if let avg = averageOxygen {
-                    Text("平均 \(Int(avg * 100))%")
-                        .font(.subheadline)
-                        .foregroundColor(.secondaryText)
-                }
-            }
+    private var averageOxygen: Double? {
+        guard !samples.isEmpty else { return nil }
+        return samples.reduce(0.0) { $0 + $1.value } / Double(samples.count)
+    }
 
-            if samples.count > 1, let min = samples.map({ $0.value }).min(),
+    var body: some View {
+        HealthCard(
+            icon: "drop.fill",
+            title: "血氧",
+            color: .appAccent,
+            trailing: averageOxygen.map { "平均 \(Int($0 * 100))%" }
+        ) {
+            if samples.count > 1,
+               let min = samples.map({ $0.value }).min(),
                let max = samples.map({ $0.value }).max() {
                 HStack(spacing: 20) {
                     VStack(spacing: 4) {
-                        Text("\(Int(min * 100))%")
-                            .font(.headline)
-                            .foregroundColor(.text)
-                        Text("最低")
-                            .font(.caption)
-                            .foregroundColor(.secondaryText)
+                        Text("\(Int(min * 100))%").font(.headline).foregroundColor(.text)
+                        Text("最低").font(.caption).foregroundColor(.secondaryText)
                     }
                     VStack(spacing: 4) {
-                        Text("\(Int(max * 100))%")
-                            .font(.headline)
-                            .foregroundColor(.text)
-                        Text("最高")
-                            .font(.caption)
-                            .foregroundColor(.secondaryText)
+                        Text("\(Int(max * 100))%").font(.headline).foregroundColor(.text)
+                        Text("最高").font(.caption).foregroundColor(.secondaryText)
                     }
                     Spacer()
                 }
             }
         }
-        .padding()
-        .background(.ultraThinMaterial)
-        .cornerRadius(16)
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.15), lineWidth: 1))
-        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
-    }
-
-    var averageOxygen: Double? {
-        guard !samples.isEmpty else { return nil }
-        let total = samples.reduce(0.0) { $0 + $1.value }
-        return total / Double(samples.count)
     }
 }
 
@@ -587,44 +475,26 @@ struct MenstrualDataCard: View {
     let menstrualData: [MenstrualData]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: "drop.fill")
-                    .foregroundColor(.pink)
-                    .font(.title2)
-                Text("经期")
-                    .font(.headline)
-                    .foregroundColor(.text)
-                Spacer()
-            }
-
+        HealthCard(icon: "drop.fill", title: "经期", color: .pink) {
             VStack(spacing: 8) {
                 ForEach(Array(menstrualData.enumerated()), id: \.element.startDate) { index, data in
                     HStack {
                         Text(formatFlowLevel(data.flowLevel))
-                            .font(.subheadline)
-                            .foregroundColor(.text)
+                            .font(.subheadline).foregroundColor(.text)
                         Spacer()
                         Text(formatTime(data.startDate))
-                            .font(.caption)
-                            .foregroundColor(.secondaryText)
+                            .font(.caption).foregroundColor(.secondaryText)
                     }
                     if index < menstrualData.count - 1 {
-                        Divider()
-                            .background(Color.tertiaryBackground)
+                        Divider().background(Color.tertiaryBackground)
                     }
                 }
             }
         }
-        .padding()
-        .background(.ultraThinMaterial)
-        .cornerRadius(16)
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.15), lineWidth: 1))
-        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
     }
 
-    func formatFlowLevel(_ level: MenstrualData.FlowLevel?) -> String {
-        guard let level = level else { return "未知" }
+    private func formatFlowLevel(_ level: MenstrualData.FlowLevel?) -> String {
+        guard let level else { return "未知" }
         switch level {
         case .none: return "未记录"
         case .light: return "少量"
@@ -633,7 +503,7 @@ struct MenstrualDataCard: View {
         }
     }
 
-    func formatTime(_ date: Date) -> String {
+    private func formatTime(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm"
         return formatter.string(from: date)
@@ -645,57 +515,34 @@ struct MenstrualDataCard: View {
 struct WristTemperatureCard: View {
     let samples: [WristTemperatureData.TemperatureSample]
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: "thermometer")
-                    .foregroundColor(.orange)
-                    .font(.title2)
-                Text("手腕温度")
-                    .font(.headline)
-                    .foregroundColor(.text)
-                Spacer()
-                if let avg = averageTemperature {
-                    Text("平均 \(String(format: "%.2f", avg))°C")
-                        .font(.subheadline)
-                        .foregroundColor(.secondaryText)
-                }
-            }
+    private var averageTemperature: Double? {
+        guard !samples.isEmpty else { return nil }
+        return samples.reduce(0.0) { $0 + $1.value } / Double(samples.count)
+    }
 
-            if samples.count > 1, let min = samples.map({ $0.value }).min(),
+    var body: some View {
+        HealthCard(
+            icon: "thermometer",
+            title: "手腕温度",
+            color: .orange,
+            trailing: averageTemperature.map { "平均 \(String(format: "%.2f", $0))°C" }
+        ) {
+            if samples.count > 1,
+               let min = samples.map({ $0.value }).min(),
                let max = samples.map({ $0.value }).max() {
                 HStack(spacing: 20) {
                     VStack(spacing: 4) {
-                        Text("\(String(format: "%.2f", min))°C")
-                            .font(.headline)
-                            .foregroundColor(.text)
-                        Text("最低")
-                            .font(.caption)
-                            .foregroundColor(.secondaryText)
+                        Text("\(String(format: "%.2f", min))°C").font(.headline).foregroundColor(.text)
+                        Text("最低").font(.caption).foregroundColor(.secondaryText)
                     }
                     VStack(spacing: 4) {
-                        Text("\(String(format: "%.2f", max))°C")
-                            .font(.headline)
-                            .foregroundColor(.text)
-                        Text("最高")
-                            .font(.caption)
-                            .foregroundColor(.secondaryText)
+                        Text("\(String(format: "%.2f", max))°C").font(.headline).foregroundColor(.text)
+                        Text("最高").font(.caption).foregroundColor(.secondaryText)
                     }
                     Spacer()
                 }
             }
         }
-        .padding()
-        .background(.ultraThinMaterial)
-        .cornerRadius(16)
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.15), lineWidth: 1))
-        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
-    }
-
-    var averageTemperature: Double? {
-        guard !samples.isEmpty else { return nil }
-        let total = samples.reduce(0.0) { $0 + $1.value }
-        return total / Double(samples.count)
     }
 }
 
@@ -704,57 +551,34 @@ struct WristTemperatureCard: View {
 struct RespiratoryRateCard: View {
     let samples: [RespiratoryRateData.RespiratorySample]
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: "lungs")
-                    .foregroundColor(.cyan)
-                    .font(.title2)
-                Text("呼吸频率")
-                    .font(.headline)
-                    .foregroundColor(.text)
-                Spacer()
-                if let avg = averageRate {
-                    Text("平均 \(Int(avg)) 次/分")
-                        .font(.subheadline)
-                        .foregroundColor(.secondaryText)
-                }
-            }
+    private var averageRate: Double? {
+        guard !samples.isEmpty else { return nil }
+        return samples.reduce(0.0) { $0 + $1.value } / Double(samples.count)
+    }
 
-            if samples.count > 1, let min = samples.map({ $0.value }).min(),
+    var body: some View {
+        HealthCard(
+            icon: "lungs",
+            title: "呼吸频率",
+            color: .cyan,
+            trailing: averageRate.map { "平均 \(Int($0)) 次/分" }
+        ) {
+            if samples.count > 1,
+               let min = samples.map({ $0.value }).min(),
                let max = samples.map({ $0.value }).max() {
                 HStack(spacing: 20) {
                     VStack(spacing: 4) {
-                        Text("\(Int(min))")
-                            .font(.headline)
-                            .foregroundColor(.text)
-                        Text("最低")
-                            .font(.caption)
-                            .foregroundColor(.secondaryText)
+                        Text("\(Int(min))").font(.headline).foregroundColor(.text)
+                        Text("最低").font(.caption).foregroundColor(.secondaryText)
                     }
                     VStack(spacing: 4) {
-                        Text("\(Int(max))")
-                            .font(.headline)
-                            .foregroundColor(.text)
-                        Text("最高")
-                            .font(.caption)
-                            .foregroundColor(.secondaryText)
+                        Text("\(Int(max))").font(.headline).foregroundColor(.text)
+                        Text("最高").font(.caption).foregroundColor(.secondaryText)
                     }
                     Spacer()
                 }
             }
         }
-        .padding()
-        .background(.ultraThinMaterial)
-        .cornerRadius(16)
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.15), lineWidth: 1))
-        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
-    }
-
-    var averageRate: Double? {
-        guard !samples.isEmpty else { return nil }
-        let total = samples.reduce(0.0) { $0 + $1.value }
-        return total / Double(samples.count)
     }
 }
 
@@ -763,57 +587,34 @@ struct RespiratoryRateCard: View {
 struct BodyTemperatureCard: View {
     let samples: [BodyTemperatureData.BodyTempSample]
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: "thermometer.sun")
-                    .foregroundColor(.red)
-                    .font(.title2)
-                Text("体温")
-                    .font(.headline)
-                    .foregroundColor(.text)
-                Spacer()
-                if let avg = averageTemperature {
-                    Text("平均 \(String(format: "%.2f", avg))°C")
-                        .font(.subheadline)
-                        .foregroundColor(.secondaryText)
-                }
-            }
+    private var averageTemperature: Double? {
+        guard !samples.isEmpty else { return nil }
+        return samples.reduce(0.0) { $0 + $1.value } / Double(samples.count)
+    }
 
-            if samples.count > 1, let min = samples.map({ $0.value }).min(),
+    var body: some View {
+        HealthCard(
+            icon: "thermometer.sun",
+            title: "体温",
+            color: .red,
+            trailing: averageTemperature.map { "平均 \(String(format: "%.2f", $0))°C" }
+        ) {
+            if samples.count > 1,
+               let min = samples.map({ $0.value }).min(),
                let max = samples.map({ $0.value }).max() {
                 HStack(spacing: 20) {
                     VStack(spacing: 4) {
-                        Text("\(String(format: "%.2f", min))°C")
-                            .font(.headline)
-                            .foregroundColor(.text)
-                        Text("最低")
-                            .font(.caption)
-                            .foregroundColor(.secondaryText)
+                        Text("\(String(format: "%.2f", min))°C").font(.headline).foregroundColor(.text)
+                        Text("最低").font(.caption).foregroundColor(.secondaryText)
                     }
                     VStack(spacing: 4) {
-                        Text("\(String(format: "%.2f", max))°C")
-                            .font(.headline)
-                            .foregroundColor(.text)
-                        Text("最高")
-                            .font(.caption)
-                            .foregroundColor(.secondaryText)
+                        Text("\(String(format: "%.2f", max))°C").font(.headline).foregroundColor(.text)
+                        Text("最高").font(.caption).foregroundColor(.secondaryText)
                     }
                     Spacer()
                 }
             }
         }
-        .padding()
-        .background(.ultraThinMaterial)
-        .cornerRadius(16)
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.15), lineWidth: 1))
-        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
-    }
-
-    var averageTemperature: Double? {
-        guard !samples.isEmpty else { return nil }
-        let total = samples.reduce(0.0) { $0 + $1.value }
-        return total / Double(samples.count)
     }
 }
 
@@ -823,44 +624,21 @@ struct BloodPressureCard: View {
     let samples: [BloodPressureData.BloodPressureSample]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: "heart.text.square")
-                    .foregroundColor(.purple)
-                    .font(.title2)
-                Text("血压")
-                    .font(.headline)
-                    .foregroundColor(.text)
-                Spacer()
-            }
-
+        HealthCard(icon: "heart.text.square", title: "血压", color: .purple) {
             if let latest = samples.first {
                 HStack(spacing: 20) {
                     VStack(spacing: 4) {
-                        Text("\(Int(latest.systolicValue))")
-                            .font(.headline)
-                            .foregroundColor(.text)
-                        Text("收缩压")
-                            .font(.caption)
-                            .foregroundColor(.secondaryText)
+                        Text("\(Int(latest.systolicValue))").font(.headline).foregroundColor(.text)
+                        Text("收缩压").font(.caption).foregroundColor(.secondaryText)
                     }
                     VStack(spacing: 4) {
-                        Text("\(Int(latest.diastolicValue))")
-                            .font(.headline)
-                            .foregroundColor(.text)
-                        Text("舒张压")
-                            .font(.caption)
-                            .foregroundColor(.secondaryText)
+                        Text("\(Int(latest.diastolicValue))").font(.headline).foregroundColor(.text)
+                        Text("舒张压").font(.caption).foregroundColor(.secondaryText)
                     }
                     Spacer()
                 }
             }
         }
-        .padding()
-        .background(.ultraThinMaterial)
-        .cornerRadius(16)
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.15), lineWidth: 1))
-        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
     }
 }
 

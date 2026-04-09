@@ -1,7 +1,9 @@
 import bcrypt from 'bcrypt';
 import { prisma } from '../models/prisma';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../middleware/auth.middleware';
-import type { LoginRequest, LoginResponse, RefreshTokenRequest } from '../types';
+import type { LoginRequest, LoginResponse, RefreshTokenRequest, AppleLoginRequest } from '../types';
+import appleSignin from 'apple-signin-auth';
+import { config } from '../config';
 import { createLogger } from '../utils/logger';
 
 const logger = createLogger('AuthService');
@@ -158,5 +160,75 @@ export class AuthService {
         logger.info(`Created default user: ${def.username} (password: ${def.password})`);
       }
     }
+  }
+
+  /**
+   * Authenticate or register user via Apple Sign In
+   */
+  async appleLogin(request: AppleLoginRequest): Promise<LoginResponse> {
+    const { identityToken } = request;
+
+    // Verify the identity token via Apple's public JWKS
+    let appleUserId: string;
+    try {
+      const payload = await appleSignin.verifyIdToken(identityToken, {
+        audience: config.apple.clientId,
+        ignoreExpiration: false,
+      });
+      appleUserId = payload.sub;
+    } catch (err) {
+      logger.warn('Apple identity token verification failed', err);
+      throw new Error('Invalid Apple identity token');
+    }
+
+    // Find or create user
+    let user = await prisma.user.findUnique({ where: { appleUserId } });
+
+    if (!user) {
+      const username = `apple_${appleUserId.substring(0, 8).toLowerCase()}`;
+      user = await prisma.user.create({
+        data: {
+          username,
+          password: null,
+          appleUserId,
+          role: 'user',
+        },
+      });
+      logger.info(`Created Apple user: ${username}`);
+    }
+
+    if (!user.isActive) {
+      throw new Error('Account is disabled');
+    }
+
+    const tokenPayload = {
+      userId: user.id,
+      username: user.username,
+      role: user.role,
+    };
+
+    const accessToken = generateAccessToken(tokenPayload);
+    const refreshToken = generateRefreshToken(tokenPayload);
+
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 30);
+
+    await prisma.session.deleteMany({ where: { userId: user.id } });
+    await prisma.session.create({
+      data: { userId: user.id, refreshToken, expiresAt },
+    });
+
+    logger.info(`Apple user logged in: ${user.username}`);
+
+    return {
+      access_token: accessToken,
+      refresh_token: refreshToken,
+      expires_in: 3600,
+      user: {
+        id: user.id,
+        username: user.username,
+        role: user.role,
+      },
+    };
   }
 }

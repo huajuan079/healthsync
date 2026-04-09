@@ -42,7 +42,7 @@ export const config = {
 
 // Validate required config
 export function validateConfig(): void {
-  const required = ['jwt.secret', 'jwt.refreshSecret'];
+  const required = ['jwt.secret', 'jwt.refreshSecret', 'apple.clientId'];
 
   for (const key of required) {
     const value = key.split('.').reduce((obj, k) => obj?.[k], config as any);

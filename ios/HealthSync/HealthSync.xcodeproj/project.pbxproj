@@ -39,6 +39,7 @@
 		A1A1A1B9000000000000001 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2A2A2A2000000000000025 /* HomeView.swift */; };
 		A1A1A1BA0000000000000001 /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2A2A2A2000000000000026 /* HomeViewModel.swift */; };
 		A1A1A1BB0000000000000001 /* TabBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2A2A2A2000000000000027 /* TabBarView.swift */; };
+		A1A1A1BC0000000000000001 /* HealthCardComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2A2A2A2000000000000028 /* HealthCardComponents.swift */; };
 		B65190032F77862200AEB8E7 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B65190022F77862200AEB8E7 /* Launch Screen.storyboard */; };
 		B65190062F78F15D00AEB8E7 /* HealthDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B65190042F78F15D00AEB8E7 /* HealthDetailView.swift */; };
 		B65190072F78F15D00AEB8E7 /* HealthDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B65190052F78F15D00AEB8E7 /* HealthDetailViewModel.swift */; };
@@ -81,6 +82,7 @@
 		A2A2A2A2000000000000025 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		A2A2A2A2000000000000026 /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
 		A2A2A2A2000000000000027 /* TabBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarView.swift; sourceTree = "<group>"; };
+		A2A2A2A2000000000000028 /* HealthCardComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthCardComponents.swift; sourceTree = "<group>"; };
 		B65190022F77862200AEB8E7 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 		B65190042F77862300AEB8E7 /* HealthSync.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HealthSync.entitlements; sourceTree = "<group>"; };
 		B65190042F78F15D00AEB8E7 /* HealthDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthDetailView.swift; sourceTree = "<group>"; };
@@ -430,6 +432,7 @@
 			isa = PBXGroup;
 			children = (
 				A2A2A2A2000000000000006 /* LoadingView.swift */,
+				A2A2A2A2000000000000028 /* HealthCardComponents.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -675,6 +678,7 @@
 				9FA0F4692F855F5A0043048C /* HealthSyncShortcuts.swift in Sources */,
 				A1A1A1BA0000000000000001 /* HomeViewModel.swift in Sources */,
 				A1A1A1BB0000000000000001 /* TabBarView.swift in Sources */,
+				A1A1A1BC0000000000000001 /* HealthCardComponents.swift in Sources */,
 				C65190032F77862300AEB8E8 /* EncryptionConfig.swift in Sources */,
 				4DB152DB8CD9C4D832BDA4E8 /* DevServerView.swift in Sources */,
 			);

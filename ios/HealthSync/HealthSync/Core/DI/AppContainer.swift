@@ -32,6 +32,7 @@ final class AppContainer: ObservableObject {
     )
 
     lazy var loginUseCase = LoginUseCase(authRepository: authRepository)
+    lazy var appleSignInUseCase: AppleSignInUseCaseProtocol = AppleSignInUseCase(authRepository: authRepository)
     lazy var syncHealthDataUseCase = SyncHealthDataUseCase(
         healthRepository: healthRepository,
         syncRepository: syncRepository,

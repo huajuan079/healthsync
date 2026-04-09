@@ -12,6 +12,7 @@
 		9FA0F4692F855F5A0043048C /* HealthSyncShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FA0F4662F855F5A0043048C /* HealthSyncShortcuts.swift */; };
 		9FA0F46C2F8565E30043048C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9FA0F46B2F8565E30043048C /* Assets.xcassets */; };
 		9FCBD10C2F8603EB00261D4A /* AppIcon~ios-marketing 2.png in Resources */ = {isa = PBXBuildFile; fileRef = 9FCBD10B2F8603EB00261D4A /* AppIcon~ios-marketing 2.png */; };
+		9FCBD10E2F877CDA00261D4A /* AppleSignInUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FCBD10D2F877CDA00261D4A /* AppleSignInUseCase.swift */; };
 		A1A1A1A1000000000000001 /* HealthSyncApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2A2A2A2000000000000001 /* HealthSyncApp.swift */; };
 		A1A1A1A2000000000000001 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2A2A2A2000000000000002 /* KeychainManager.swift */; };
 		A1A1A1A3000000000000001 /* AppContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2A2A2A2000000000000003 /* AppContainer.swift */; };
@@ -54,6 +55,7 @@
 		9FA0F4672F855F5A0043048C /* SyncHealthDataIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncHealthDataIntent.swift; sourceTree = "<group>"; };
 		9FA0F46B2F8565E30043048C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9FCBD10B2F8603EB00261D4A /* AppIcon~ios-marketing 2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIcon~ios-marketing 2.png"; sourceTree = "<group>"; };
+		9FCBD10D2F877CDA00261D4A /* AppleSignInUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSignInUseCase.swift; sourceTree = "<group>"; };
 		A0000001000000000000001 /* HealthSync.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HealthSync.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A2A2A2A2000000000000001 /* HealthSyncApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthSyncApp.swift; sourceTree = "<group>"; };
 		A2A2A2A2000000000000002 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
@@ -456,6 +458,7 @@
 		A40000CA000000000000001 /* UseCases */ = {
 			isa = PBXGroup;
 			children = (
+				9FCBD10D2F877CDA00261D4A /* AppleSignInUseCase.swift */,
 				A2A2A2A2000000000000010 /* LoginUseCase.swift */,
 			);
 			path = UseCases;
@@ -652,6 +655,7 @@
 				B65190062F78F15D00AEB8E7 /* HealthDetailView.swift in Sources */,
 				B65190072F78F15D00AEB8E7 /* HealthDetailViewModel.swift in Sources */,
 				A1A1A1A3000000000000001 /* AppContainer.swift in Sources */,
+				9FCBD10E2F877CDA00261D4A /* AppleSignInUseCase.swift in Sources */,
 				A1A1A1A4000000000000001 /* Colors.swift in Sources */,
 				A1A1A1A5000000000000001 /* Extensions.swift in Sources */,
 				A1A1A1A6000000000000001 /* LoadingView.swift in Sources */,

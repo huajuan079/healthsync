@@ -110,7 +110,7 @@ struct HealthDataCardsView: View {
         VStack(spacing: 20) {
             // 步数卡片
             if let steps = data.steps {
-                StepsMetricCard(
+                MetricCard(
                     icon: "figure.walk",
                     title: "步数",
                     value: "\(steps.value)",
@@ -126,7 +126,7 @@ struct HealthDataCardsView: View {
 
             // 静息心率
             if let restingHR = data.restingHeartRate {
-                RestingHeartRateCard(
+                MetricCard(
                     icon: "heart.fill",
                     title: "静息心率",
                     value: "\(Int(restingHR.value))",
@@ -157,7 +157,7 @@ struct HealthDataCardsView: View {
 
             // 体重
             if let weight = data.weight {
-                WeightMetricCard(
+                MetricCard(
                     icon: "scalemass",
                     title: "体重",
                     value: String(format: "%.1f", weight.value),
@@ -193,7 +193,7 @@ struct HealthDataCardsView: View {
 
             // 主动能量消耗
             if let activeEnergy = data.activeEnergyBurned {
-                StepsMetricCard(
+                MetricCard(
                     icon: "flame.fill",
                     title: "主动能量",
                     value: String(format: "%.0f", activeEnergy.value),
@@ -204,7 +204,7 @@ struct HealthDataCardsView: View {
 
             // 爬楼层数
             if let flights = data.flightsClimbed {
-                StepsMetricCard(
+                MetricCard(
                     icon: "stairs",
                     title: "爬楼层数",
                     value: String(format: "%.0f", flights.value),
@@ -213,128 +213,6 @@ struct HealthDataCardsView: View {
                 )
             }
         }
-    }
-}
-
-// MARK: - Individual Metric Cards
-
-struct StepsMetricCard: View {
-    let icon: String
-    let title: String
-    let value: String
-    let unit: String
-    let color: Color
-
-    var body: some View {
-        HStack(spacing: 16) {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundColor(color)
-                .frame(width: 40)
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.subheadline)
-                    .foregroundColor(.secondaryText)
-
-                HStack(spacing: 4) {
-                    Text(value)
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.text)
-                    Text(unit)
-                        .font(.subheadline)
-                        .foregroundColor(.secondaryText)
-                }
-            }
-
-            Spacer()
-        }
-        .padding()
-        .background(.ultraThinMaterial)
-        .cornerRadius(16)
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.15), lineWidth: 1))
-        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
-    }
-}
-
-struct RestingHeartRateCard: View {
-    let icon: String
-    let title: String
-    let value: String
-    let unit: String
-    let color: Color
-
-    var body: some View {
-        HStack(spacing: 16) {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundColor(color)
-                .frame(width: 40)
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.subheadline)
-                    .foregroundColor(.secondaryText)
-
-                HStack(spacing: 4) {
-                    Text(value)
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.text)
-                    Text(unit)
-                        .font(.subheadline)
-                        .foregroundColor(.secondaryText)
-                }
-            }
-
-            Spacer()
-        }
-        .padding()
-        .background(.ultraThinMaterial)
-        .cornerRadius(16)
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.15), lineWidth: 1))
-        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
-    }
-}
-
-struct WeightMetricCard: View {
-    let icon: String
-    let title: String
-    let value: String
-    let unit: String
-    let color: Color
-
-    var body: some View {
-        HStack(spacing: 16) {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundColor(color)
-                .frame(width: 40)
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.subheadline)
-                    .foregroundColor(.secondaryText)
-
-                HStack(spacing: 4) {
-                    Text(value)
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.text)
-                    Text(unit)
-                        .font(.subheadline)
-                        .foregroundColor(.secondaryText)
-                }
-            }
-
-            Spacer()
-        }
-        .padding()
-        .background(.ultraThinMaterial)
-        .cornerRadius(16)
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.15), lineWidth: 1))
-        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
     }
 }
 

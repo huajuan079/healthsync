@@ -14,10 +14,11 @@ struct HealthCard<Content: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
+            HStack(spacing: 8) {
                 Image(systemName: icon)
                     .foregroundColor(color)
                     .font(.title2)
+                    .accessibilityHidden(true)
                 Text(title)
                     .font(.headline)
                     .foregroundColor(.text)
@@ -39,6 +40,11 @@ struct HealthCard<Content: View>: View {
 //
 // 单指标卡：左侧 icon，右侧上方 title、下方 value + unit。
 // 替代原 StepsMetricCard / RestingHeartRateCard / WeightMetricCard（三者完全相同）。
+//
+// NOTE: This is a standalone full-width card. Do NOT nest inside HealthCard —
+// it already applies cardStyle() internally, which would cause double-glass layering.
+// For compact vertical metric cells (used inside HealthCard content), see
+// HealthMetricCard in HomeView.swift.
 
 struct MetricCard: View {
     let icon: String
@@ -53,6 +59,7 @@ struct MetricCard: View {
                 .font(.title2)
                 .foregroundColor(color)
                 .frame(width: 40)
+                .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
@@ -77,4 +84,15 @@ struct MetricCard: View {
         .padding()
         .cardStyle()
     }
+}
+
+#Preview {
+    VStack(spacing: 16) {
+        HealthCard(icon: "heart.fill", title: "心率", color: Color(red: 0.92, green: 0.30, blue: 0.40), trailing: "平均 72 bpm") {
+            Text("Sample content").foregroundColor(.secondary)
+        }
+        MetricCard(icon: "figure.walk", title: "步数", value: "8,432", unit: "步", color: Color(red: 0.25, green: 0.65, blue: 0.90))
+    }
+    .padding()
+    .background(Color(UIColor.systemBackground))
 }

@@ -10,16 +10,17 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  username  String   @unique
-  password  String
-  role      String   @default("user")
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(uuid())
+  username    String   @unique
+  password    String?
+  appleUserId String?  @unique
+  role        String   @default("user")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  sessions  Session[]
-  uploads   Upload[]
+  sessions   Session[]
+  uploads    Upload[]
   syncStatus SyncStatus[]
 }
 

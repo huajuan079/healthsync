@@ -28,6 +28,10 @@ export class AuthService {
       throw new Error('Account is disabled');
     }
 
+    if (!user.password) {
+      throw new Error('This account uses Apple Sign In. Please use Sign in with Apple.');
+    }
+
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {
       logger.warn(`Invalid password for user: ${username}`);
